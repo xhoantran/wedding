@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const locales = ["en", "vi"];
-const defaultLocale = "vi";
+
+function detectLocale(request: NextRequest): string {
+  // 1. Vercel geolocation header — Vietnam → vi
+  const country = request.headers.get("x-vercel-ip-country");
+  if (country === "VN") return "vi";
+  if (country) return "en"; // known country, not Vietnam
+
+  // 2. Accept-Language header fallback
+  const acceptLang = request.headers.get("accept-language") || "";
+  if (acceptLang.match(/\bvi\b/)) return "vi";
+
+  return "en";
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,9 +35,10 @@ export function middleware(request: NextRequest) {
     return;
   }
 
-  // Redirect to default locale
+  // Detect locale from region/browser and redirect
+  const locale = detectLocale(request);
   const url = request.nextUrl.clone();
-  url.pathname = `/${defaultLocale}${pathname}`;
+  url.pathname = `/${locale}${pathname}`;
   return NextResponse.redirect(url);
 }
 

@@ -113,8 +113,8 @@ const translations = {
   },
 } as const;
 
-export type Translations = (typeof translations)["en"];
+export type Translations = (typeof translations)[Locale];
 
-export function getTranslations(locale: Locale): Translations {
+export function getTranslations(locale: Locale) {
   return translations[locale];
 }
