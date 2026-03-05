@@ -1,26 +1,126 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FAF7F2;
+  --foreground: #2C2C2C;
+  --cream: #FAF7F2;
+  --warm-white: #FFFFFF;
+  --champagne: #F5E6D3;
+  --gold: #B8860B;
+  --gold-light: #D4A843;
+  --sage: #A8B5A0;
+  --charcoal: #2C2C2C;
+  --stone: #6B6B6B;
+  --blush: #F2D7D5;
+  --rose: #C9A9A6;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-cream: var(--cream);
+  --color-warm-white: var(--warm-white);
+  --color-champagne: var(--champagne);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-sage: var(--sage);
+  --color-charcoal: var(--charcoal);
+  --color-stone: var(--stone);
+  --color-blush: var(--blush);
+  --color-rose: var(--rose);
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-montserrat);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Film grain texture overlay */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+}
+
+/* Curved section divider */
+.section-curve-top {
+  position: relative;
+}
+.section-curve-top::before {
+  content: "";
+  position: absolute;
+  top: -64px;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: inherit;
+  clip-path: ellipse(60% 100% at 50% 100%);
+  z-index: 1;
+}
+
+/* Selection color */
+::selection {
+  background: var(--champagne);
+  color: var(--charcoal);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--rose);
+  border-radius: 3px;
+}
+
+/* Animated input focus underline */
+.input-underline {
+  position: relative;
+}
+.input-underline::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.input-underline:focus-within::after {
+  transform: scaleX(1);
+}
+
+/* Golden shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--gold) 0%,
+    var(--gold-light) 50%,
+    var(--gold) 100%
+  );
+  background-size: 200% auto;
+}
+.gold-shimmer:hover {
+  animation: shimmer 2s linear infinite;
 }
