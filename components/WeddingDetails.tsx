@@ -100,7 +100,7 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.3 }}
-              className="relative overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
+              className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
             >
               <CornerAccents />
               <RingsIcon />
@@ -134,7 +134,7 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.3 }}
-              className="relative overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
+              className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
             >
               <CornerAccents />
               <ChampagneIcon />
