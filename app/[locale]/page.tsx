@@ -16,6 +16,7 @@ import RomanticQuote from "@/components/RomanticQuote";
 import Gallery from "@/components/Gallery";
 import Rsvp from "@/components/Rsvp";
 import Footer from "@/components/Footer";
+import MusicPlayer from "@/components/MusicPlayer";
 
 export default function Home() {
   const lenisRef = useRef<LenisRef>(null);
@@ -44,6 +45,7 @@ export default function Home() {
       <Rsvp locale={locale} />
       <Footer locale={locale} />
       </ReactLenis>
+      <MusicPlayer locale={locale} />
     </>
   );
 }
