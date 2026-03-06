@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Locale } from "@/lib/types";
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 type Track = { src: string; title: string; artist: string };
 
@@ -11,6 +20,8 @@ const MUSIC: Record<Locale, Track[]> = {
     { src: "/music/vi.mp3", title: "Ngày Đầu Tiên", artist: "Đức Phúc" },
     { src: "/music/vi2.mp3", title: "Gặp Gỡ, Yêu Đương Và Được Bên Em", artist: "Phan Mạnh Quỳnh" },
     { src: "/music/vi3.mp3", title: "Lễ Đường", artist: "Kai Đinh" },
+    { src: "/music/vi4.mp3", title: "Một Đời", artist: "14 Casper & Bon Nghiêm ft. buitruonglinh" },
+    { src: "/music/vi5.mp3", title: "Hơn Cả Yêu", artist: "Đức Phúc" },
   ],
   en: [
     { src: "/music/en.mp3", title: "Ordinary", artist: "Alex Warren" },
@@ -23,7 +34,8 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
   const [progress, setProgress] = useState(0);
   const [trackIndex, setTrackIndex] = useState(0);
 
-  const playlist = MUSIC[locale];
+   
+  const playlist = useMemo(() => shuffle(MUSIC[locale]), [locale]);
   const track = playlist[trackIndex];
 
   useEffect(() => {
