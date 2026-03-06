@@ -15,9 +15,11 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const audio = new Audio(MUSIC[locale].src);
+    const audio = new Audio();
+    audio.preload = "auto";
     audio.loop = true;
     audio.volume = 0.3;
+    audio.src = MUSIC[locale].src;
     audioRef.current = audio;
 
     const updateProgress = () => {
@@ -27,22 +29,27 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
     };
     audio.addEventListener("timeupdate", updateProgress);
 
-    // Autoplay on first user interaction
-    const autoplay = () => {
-      audio.play().then(() => setPlaying(true)).catch(() => {});
-      document.removeEventListener("click", autoplay);
-      document.removeEventListener("scroll", autoplay);
-      document.removeEventListener("touchstart", autoplay);
+    let started = false;
+    const tryPlay = () => {
+      if (started) return;
+      audio.play().then(() => {
+        started = true;
+        setPlaying(true);
+        cleanup();
+      }).catch(() => {
+        // Browser blocked — will retry on next gesture
+      });
     };
-    document.addEventListener("click", autoplay, { once: true });
-    document.addEventListener("scroll", autoplay, { once: true });
-    document.addEventListener("touchstart", autoplay, { once: true });
+
+    // Only user activation events (click, touchstart, keydown) allow play()
+    // scroll does NOT count as user activation in any browser
+    const events = ["click", "touchstart", "keydown"] as const;
+    const cleanup = () => events.forEach((e) => document.removeEventListener(e, tryPlay));
+    events.forEach((e) => document.addEventListener(e, tryPlay, { passive: true }));
 
     return () => {
+      cleanup();
       audio.removeEventListener("timeupdate", updateProgress);
-      document.removeEventListener("click", autoplay);
-      document.removeEventListener("scroll", autoplay);
-      document.removeEventListener("touchstart", autoplay);
       audio.pause();
       audio.src = "";
     };
