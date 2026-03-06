@@ -31,6 +31,7 @@ const translations = {
     gallery: {
       title: "Our Moments",
       subtitle: "A collection of our favorite memories together",
+      viewAll: "View All Photos",
     },
     rsvp: {
       title: "RSVP",
@@ -86,6 +87,7 @@ const translations = {
     gallery: {
       title: "Khoảnh Khắc",
       subtitle: "Bộ sưu tập những kỷ niệm đẹp nhất của chúng tôi",
+      viewAll: "Xem Tất Cả Ảnh",
     },
     rsvp: {
       title: "Xác Nhận Tham Dự",

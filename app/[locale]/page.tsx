@@ -34,7 +34,7 @@ export default function Home() {
   return (
     <>
       {!loaded && <Preloader onComplete={() => setLoaded(true)} />}
-      <ReactLenis root options={{ autoRaf: false }} ref={lenisRef}>
+      <ReactLenis root options={{ autoRaf: false, lerp: 0.06, duration: 1.4 }} ref={lenisRef}>
         <Navigation locale={locale} />
       <Hero locale={locale} />
       <PhotoBreak />
