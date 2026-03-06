@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# face detection pipeline
+scripts/output/
+scripts/__pycache__/
