@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { submitRsvp, RsvpState } from "@/app/[locale]/actions/rsvp";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
+import { useWeddingStore } from "@/lib/store";
 import SectionHeading from "./SectionHeading";
 import ScrollReveal from "./ScrollReveal";
 import MagneticButton from "./MagneticButton";
@@ -17,6 +18,11 @@ export default function Rsvp({ locale }: { locale: Locale }) {
     initialState
   );
   const [attendance, setAttendance] = useState<string>("");
+  const setHasRsvped = useWeddingStore((s) => s.setHasRsvped);
+
+  useEffect(() => {
+    if (state.success) setHasRsvped();
+  }, [state.success, setHasRsvped]);
   const t = getTranslations(locale).rsvp;
 
   return (

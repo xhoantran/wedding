@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 
 import { Locale } from "@/lib/types";
+import { useWeddingStore } from "@/lib/store";
 import Preloader from "@/components/Preloader";
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
@@ -16,12 +17,14 @@ import RomanticQuote from "@/components/RomanticQuote";
 import Gallery from "@/components/Gallery";
 import Rsvp from "@/components/Rsvp";
 import TeamPoll from "@/components/TeamPoll";
+import GuestWishes from "@/components/GuestWishes";
 import Footer from "@/components/Footer";
 import MusicPlayer from "@/components/MusicPlayer";
 
 export default function Home() {
   const lenisRef = useRef<LenisRef>(null);
   const [loaded, setLoaded] = useState(false);
+  const hasRsvped = useWeddingStore((s) => s.hasRsvped);
   const params = useParams<{ locale: Locale }>();
   const locale = params.locale === "en" ? "en" : "vi";
 
@@ -67,8 +70,13 @@ export default function Home() {
       <WeddingDetails locale={locale} />
       <RomanticQuote locale={locale} />
       <Gallery locale={locale} />
-      <TeamPoll locale={locale} />
       <Rsvp locale={locale} />
+      {hasRsvped && (
+        <>
+          <TeamPoll locale={locale} />
+          <GuestWishes locale={locale} />
+        </>
+      )}
       <Footer locale={locale} />
       </ReactLenis>
       <MusicPlayer locale={locale} />
