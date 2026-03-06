@@ -32,6 +32,17 @@ export default function Home() {
     return () => cancelFrame(update);
   }, []);
 
+  // Block scrolling while preloader is visible
+  useEffect(() => {
+    const lenis = lenisRef.current?.lenis;
+    if (!lenis) return;
+    if (loaded) {
+      lenis.start();
+    } else {
+      lenis.stop();
+    }
+  }, [loaded]);
+
   return (
     <>
       {!loaded && <Preloader locale={locale} onComplete={() => setLoaded(true)} />}

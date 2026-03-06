@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { GALLERY_IMAGES, ALL_GALLERY_IMAGES } from "@/lib/constants";
@@ -22,11 +22,24 @@ export default function Gallery({ locale }: { locale: Locale }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const targetRef = useRef(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const overflowRef = useRef(0);
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end end"],
   });
-  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-88%"]);
+  const x = useTransform(scrollYProgress, (v) => -v * overflowRef.current);
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const measure = () => {
+      overflowRef.current = el.scrollWidth - el.parentElement!.clientWidth;
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
   const t = getTranslations(locale).gallery;
 
   return (
@@ -45,6 +58,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
             <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-linear-to-l from-cream to-transparent md:w-24" />
 
             <motion.div
+              ref={contentRef}
               style={{ x }}
               className="flex gap-5 pl-[8vw] pr-[20vw] md:gap-7"
             >

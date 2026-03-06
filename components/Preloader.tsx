@@ -18,7 +18,7 @@ export default function Preloader({
   useEffect(() => {
     if (!ready || exit) return;
     const dismiss = () => setExit(true);
-    const events = ["click", "touchstart", "wheel", "keydown", "pointerdown"] as const;
+    const events = ["click", "touchstart", "keydown", "pointerdown"] as const;
     events.forEach((e) => document.addEventListener(e, dismiss, { once: true, passive: true }));
     return () => events.forEach((e) => document.removeEventListener(e, dismiss));
   }, [ready, exit]);
