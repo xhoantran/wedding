@@ -14,7 +14,7 @@ export default function SectionHeading({
   subtitle,
 }: SectionHeadingProps) {
   return (
-    <div className="mb-16 text-center">
+    <div className="mb-8 text-center md:mb-16">
       <h2 className="font-serif text-4xl font-light tracking-wide text-charcoal md:text-5xl">
         <TextReveal
           text={title}
