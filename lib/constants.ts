@@ -9,7 +9,7 @@ export const WEDDING: WeddingInfo = {
   ceremonyTime: "10:00 AM",
   receptionTime: "6:00 PM",
   ceremonyVenue: "",
-  ceremonyAddress: "763 Đường 23/10, Vĩnh Thạnh, Nha Trang, Khánh Hòa, Việt Nam",
+  ceremonyAddress: "761 Đường 23/10, Vĩnh Thạnh, Nha Trang, Khánh Hòa, Việt Nam",
   receptionVenue: "InterContinental Nha Trang",
   receptionAddress: "32-34 Trần Phú, phường, Nha Trang, Khánh Hòa, Việt Nam",
   hashtag: "#HoanAndThy2027",
