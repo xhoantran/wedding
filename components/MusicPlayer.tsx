@@ -22,6 +22,7 @@ const MUSIC: Record<Locale, Track[]> = {
     { src: "/music/vi3.mp3", title: "Lễ Đường", artist: "Kai Đinh" },
     { src: "/music/vi4.mp3", title: "Một Đời", artist: "14 Casper & Bon Nghiêm ft. buitruonglinh" },
     { src: "/music/vi5.mp3", title: "Hơn Cả Yêu", artist: "Đức Phúc" },
+    { src: "/music/vi6.mp3", title: "Sau Tất Cả", artist: "ERIK" },
   ],
   en: [
     { src: "/music/en.mp3", title: "Ordinary", artist: "Alex Warren" },

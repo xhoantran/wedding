@@ -70,11 +70,21 @@ const stagger = {
   },
 };
 
-const cardVariant = {
-  hidden: { opacity: 0, y: 30, scale: 0.97 },
+const cardVariantLeft = {
+  hidden: { opacity: 0, x: -40, scale: 0.97 },
   visible: {
     opacity: 1,
-    y: 0,
+    x: 0,
+    scale: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
+  },
+};
+
+const cardVariantRight = {
+  hidden: { opacity: 0, x: 40, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    x: 0,
     scale: 1,
     transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
   },
@@ -96,7 +106,7 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
           viewport={{ once: true, margin: "-80px" }}
           className="flex flex-col gap-6 md:flex-row md:gap-10"
         >
-          <motion.div variants={cardVariant} className="flex-1">
+          <motion.div variants={cardVariantLeft} className="flex-1">
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.3 }}
@@ -130,7 +140,7 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
             </motion.div>
           </motion.div>
 
-          <motion.div variants={cardVariant} className="flex-1">
+          <motion.div variants={cardVariantRight} className="flex-1">
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.3 }}

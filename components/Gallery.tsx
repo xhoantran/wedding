@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import { GALLERY_IMAGES, ALL_GALLERY_IMAGES } from "@/lib/constants";
 import { getTranslations } from "@/lib/i18n";
@@ -28,7 +28,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
     target: targetRef,
     offset: ["start start", "end end"],
   });
-  const x = useTransform(scrollYProgress, (v) => -v * overflowRef.current);
+  const rawX = useTransform(scrollYProgress, (v) => -v * overflowRef.current);
+  const x = useSpring(rawX, { stiffness: 80, damping: 30, mass: 0.5 });
 
   useEffect(() => {
     const el = contentRef.current;
@@ -44,7 +45,7 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
   return (
     <>
-      <section ref={targetRef} className="relative h-[600vh] md:h-[300vh]" id="gallery">
+      <section ref={targetRef} className="relative h-[900vh] md:h-[450vh]" id="gallery">
         <div className="sticky top-0 flex h-screen flex-col overflow-hidden">
           {/* Heading */}
           <div className="px-6 pt-20 md:px-12">
