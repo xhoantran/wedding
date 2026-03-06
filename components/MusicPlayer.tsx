@@ -32,18 +32,17 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
     let started = false;
     const tryPlay = () => {
       if (started) return;
-      audio.play().then(() => {
-        started = true;
-        setPlaying(true);
-        cleanup();
-      }).catch(() => {
-        // Browser blocked — will retry on next gesture
-      });
+      audio
+        .play()
+        .then(() => {
+          started = true;
+          setPlaying(true);
+          cleanup();
+        })
+        .catch(() => {});
     };
 
-    // Only user activation events (click, touchstart, keydown) allow play()
-    // scroll does NOT count as user activation in any browser
-    const events = ["click", "touchstart", "keydown"] as const;
+    const events = ["click", "touchstart", "keydown", "wheel", "pointerdown"] as const;
     const cleanup = () => events.forEach((e) => document.removeEventListener(e, tryPlay));
     events.forEach((e) => document.addEventListener(e, tryPlay, { passive: true }));
 
@@ -62,7 +61,10 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
       audio.pause();
       setPlaying(false);
     } else {
-      audio.play().then(() => setPlaying(true)).catch(() => {});
+      audio
+        .play()
+        .then(() => setPlaying(true))
+        .catch(() => {});
     }
   }, [playing]);
 
@@ -70,16 +72,16 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
 
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
+      initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 2.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2"
+      className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0"
     >
-      <div className="flex items-center gap-3 rounded-full border border-white/20 bg-charcoal/80 px-4 py-2.5 shadow-2xl backdrop-blur-xl">
+      <div className="flex items-center gap-2.5 rounded-full border border-white/15 bg-charcoal/80 px-3 py-2 shadow-2xl backdrop-blur-xl">
         {/* Play/Pause */}
         <button
           onClick={toggle}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition-all hover:bg-white/20"
           aria-label={playing ? "Pause music" : "Play music"}
         >
           <AnimatePresence mode="wait">
@@ -90,13 +92,13 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 transition={{ duration: 0.15 }}
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
                 fill="currentColor"
               >
-                <rect x="2" y="1" width="3.5" height="12" rx="1" />
-                <rect x="8.5" y="1" width="3.5" height="12" rx="1" />
+                <rect x="1.5" y="1" width="3" height="10" rx="0.75" />
+                <rect x="7.5" y="1" width="3" height="10" rx="0.75" />
               </motion.svg>
             ) : (
               <motion.svg
@@ -105,26 +107,26 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
                 animate={{ scale: 1 }}
                 exit={{ scale: 0 }}
                 transition={{ duration: 0.15 }}
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
                 fill="currentColor"
               >
-                <path d="M3 1.5L12 7L3 12.5V1.5Z" />
+                <path d="M2.5 1L10 6L2.5 11V1Z" />
               </motion.svg>
             )}
           </AnimatePresence>
         </button>
 
         {/* Music bars */}
-        <div className="flex h-4 items-end gap-[2px]">
+        <div className="flex h-3.5 items-end gap-0.5">
           {[0, 1, 2, 3].map((i) => (
             <motion.div
               key={i}
-              className="w-[2px] rounded-full bg-gold-light"
+              className="w-0.5 rounded-full bg-gold-light"
               animate={
                 playing
-                  ? { height: ["3px", "14px", "5px", "11px", "3px"] }
+                  ? { height: ["3px", "12px", "4px", "10px", "3px"] }
                   : { height: "3px" }
               }
               transition={
@@ -137,25 +139,25 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
         </div>
 
         {/* Song info */}
-        <div className="flex flex-col leading-none">
-          <span className="text-[11px] font-medium text-white">{track.title}</span>
-          <span className="text-[10px] text-white/50">{track.artist}</span>
+        <div className="flex flex-col whitespace-nowrap leading-none">
+          <span className="text-[10px] font-medium text-white">{track.title}</span>
+          <span className="text-[9px] text-white/45">{track.artist}</span>
         </div>
 
         {/* Circular progress */}
-        <svg width="24" height="24" viewBox="0 0 24 24" className="shrink-0 -rotate-90">
-          <circle cx="12" cy="12" r="10" fill="none" stroke="white" strokeOpacity="0.1" strokeWidth="2" />
+        <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0 -rotate-90">
+          <circle cx="10" cy="10" r="8" fill="none" stroke="white" strokeOpacity="0.08" strokeWidth="1.5" />
           <circle
-            cx="12"
-            cy="12"
-            r="10"
+            cx="10"
+            cy="10"
+            r="8"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
             strokeLinecap="round"
             className="text-gold-light"
-            strokeDasharray={2 * Math.PI * 10}
-            strokeDashoffset={2 * Math.PI * 10 * (1 - progress)}
+            strokeDasharray={2 * Math.PI * 8}
+            strokeDashoffset={2 * Math.PI * 8 * (1 - progress)}
           />
         </svg>
       </div>

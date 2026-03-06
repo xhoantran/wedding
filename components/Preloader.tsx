@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WEDDING } from "@/lib/constants";
+import { Locale } from "@/lib/types";
 
 export default function Preloader({
+  locale,
   onComplete,
 }: {
+  locale: Locale;
   onComplete: () => void;
 }) {
+  const [ready, setReady] = useState(false);
   const [exit, setExit] = useState(false);
 
   return (
@@ -18,7 +22,8 @@ export default function Preloader({
           key="preloader"
           exit={{ y: "-100%" }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-cream"
+          className="fixed inset-0 z-100 flex cursor-pointer flex-col items-center justify-center bg-cream"
+          onClick={() => ready && setExit(true)}
         >
           {/* Monogram */}
           <motion.div
@@ -55,13 +60,18 @@ export default function Preloader({
             </motion.div>
           </motion.div>
 
-          {/* Trigger exit after animation completes */}
-          <motion.div
+          {/* Enter prompt */}
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 2 }}
-            onAnimationComplete={() => setExit(true)}
-          />
+            transition={{ delay: 1.5, duration: 0.6 }}
+            onAnimationComplete={() => setReady(true)}
+            className="mt-10 max-w-xs text-center font-serif text-sm italic text-stone/80"
+          >
+            {locale === "vi"
+              ? "Mở thiệp để bắt đầu hành trình yêu thương"
+              : "Open the envelope to begin a loving journey"}
+          </motion.p>
         </motion.div>
       )}
     </AnimatePresence>

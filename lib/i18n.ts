@@ -81,8 +81,8 @@ const translations = {
       viewMap: "Xem Bản Đồ",
     },
     quote: {
-      text: "D\u00f9 t\u00e2m h\u1ed3n ch\u00fang ta \u0111\u01b0\u1ee3c t\u1ea1o n\u00ean t\u1eeb \u0111i\u1ec1u g\u00ec, th\u00ec c\u1ee7a anh v\u00e0 em \u0111\u1ec1u l\u00e0 m\u1ed9t.",
-      author: "Emily Bront\u00eb",
+      text: "Tình yêu không phải là tìm được một người hoàn hảo, mà là học cách yêu một người không hoàn hảo một cách trọn vẹn.",
+      author: "Nguyễn Nhật Ánh",
     },
     gallery: {
       title: "Khoảnh Khắc",
