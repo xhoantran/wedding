@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { WEDDING } from "@/lib/constants";
 import { Locale } from "@/lib/types";
@@ -15,6 +15,14 @@ export default function Preloader({
   const [ready, setReady] = useState(false);
   const [exit, setExit] = useState(false);
 
+  useEffect(() => {
+    if (!ready || exit) return;
+    const dismiss = () => setExit(true);
+    const events = ["click", "touchstart", "wheel", "keydown", "pointerdown"] as const;
+    events.forEach((e) => document.addEventListener(e, dismiss, { once: true, passive: true }));
+    return () => events.forEach((e) => document.removeEventListener(e, dismiss));
+  }, [ready, exit]);
+
   return (
     <AnimatePresence onExitComplete={onComplete}>
       {!exit && (
@@ -23,7 +31,6 @@ export default function Preloader({
           exit={{ y: "-100%" }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
           className="fixed inset-0 z-100 flex cursor-pointer flex-col items-center justify-center bg-cream"
-          onClick={() => ready && setExit(true)}
         >
           {/* Monogram */}
           <motion.div
