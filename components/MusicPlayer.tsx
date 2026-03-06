@@ -38,6 +38,8 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
   const playlist = useMemo(() => shuffle(MUSIC[locale]), [locale]);
   const track = playlist[trackIndex];
 
+  const wasPlayingRef = useRef(false);
+
   useEffect(() => {
     const audio = new Audio();
     audio.preload = "auto";
@@ -52,36 +54,57 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
     };
 
     const onEnded = () => {
+      wasPlayingRef.current = true;
       setTrackIndex((prev) => (prev + 1) % playlist.length);
     };
 
     audio.addEventListener("timeupdate", updateProgress);
     audio.addEventListener("ended", onEnded);
 
-    let started = false;
-    const tryPlay = () => {
-      if (started) return;
+    // If music was already playing (track change / skip), auto-play the new track
+    if (wasPlayingRef.current || playing) {
       audio
         .play()
         .then(() => {
-          started = true;
           setPlaying(true);
-          cleanup();
+          wasPlayingRef.current = false;
         })
         .catch(() => {});
-    };
+    } else {
+      // First load — wait for user activation
+      let started = false;
+      const tryPlay = () => {
+        if (started) return;
+        audio
+          .play()
+          .then(() => {
+            started = true;
+            setPlaying(true);
+            cleanup();
+          })
+          .catch(() => {});
+      };
 
-    const events = ["click", "touchstart", "keydown", "pointerdown"] as const;
-    const cleanup = () => events.forEach((e) => document.removeEventListener(e, tryPlay));
-    events.forEach((e) => document.addEventListener(e, tryPlay, { passive: true }));
+      const events = ["click", "touchstart", "keydown", "pointerdown"] as const;
+      const cleanup = () => events.forEach((e) => document.removeEventListener(e, tryPlay));
+      events.forEach((e) => document.addEventListener(e, tryPlay, { passive: true }));
+
+      return () => {
+        cleanup();
+        audio.removeEventListener("timeupdate", updateProgress);
+        audio.removeEventListener("ended", onEnded);
+        audio.pause();
+        audio.src = "";
+      };
+    }
 
     return () => {
-      cleanup();
       audio.removeEventListener("timeupdate", updateProgress);
       audio.removeEventListener("ended", onEnded);
       audio.pause();
       audio.src = "";
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale, trackIndex, playlist, track.src]);
 
   const toggle = useCallback(() => {
@@ -99,9 +122,10 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
   }, [playing]);
 
   const skip = useCallback(() => {
+    wasPlayingRef.current = playing;
     setTrackIndex((prev) => (prev + 1) % playlist.length);
     setProgress(0);
-  }, [playlist.length]);
+  }, [playlist.length, playing]);
 
   return (
     <motion.div

@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { WEDDING, getDisplayDate } from "@/lib/constants";
+import { WEDDING, getDisplayDate, getExtraLinks } from "@/lib/constants";
 import { Locale } from "@/lib/types";
 
 export default function Footer({ locale }: { locale: Locale }) {
+  const extraLinks = getExtraLinks(locale);
+
   return (
     <footer className="bg-charcoal py-16 text-center md:py-20">
       <motion.p
@@ -35,6 +38,24 @@ export default function Footer({ locale }: { locale: Locale }) {
         <span className="block h-px w-8 bg-white/20" />
         <span className="text-sm text-gold/60">&#x2665;</span>
         <span className="block h-px w-8 bg-white/20" />
+      </motion.div>
+      {/* Extra links */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, delay: 0.35 }}
+        className="mt-5 flex items-center justify-center gap-6"
+      >
+        {extraLinks.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="text-xs uppercase tracking-[0.15em] text-white/40 transition-colors hover:text-gold"
+          >
+            {link.label}
+          </Link>
+        ))}
       </motion.div>
       <motion.p
         initial={{ opacity: 0 }}

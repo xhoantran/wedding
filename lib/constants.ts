@@ -66,3 +66,11 @@ export function getNavLinks(locale: Locale) {
     { label: t.rsvp, href: "#rsvp" },
   ];
 }
+
+export function getExtraLinks(locale: Locale) {
+  const t = getTranslations(locale);
+  return [
+    { label: t.songs.title, href: `/${locale}/songs` },
+    { label: t.photos.title, href: `/${locale}/photos` },
+  ];
+}
