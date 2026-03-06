@@ -71,6 +71,13 @@ const translations = {
       errorGeneric: "Something went wrong. Please try again.",
       backHome: "Back to Home",
     },
+    teamPoll: {
+      title: "Team Groom or Team Bride?",
+      subtitle: "Cast your vote!",
+      teamGroom: "Team Groom",
+      teamBride: "Team Bride",
+      votes: "votes",
+    },
     photos: {
       title: "Photo Memories",
       subtitle: "Share your favorite moments with us",
@@ -157,6 +164,13 @@ const translations = {
       errorRequired: "Vui lòng nhập tên và tên bài hát.",
       errorGeneric: "Đã xảy ra lỗi. Vui lòng thử lại.",
       backHome: "Về Trang Chủ",
+    },
+    teamPoll: {
+      title: "Đội Chú Rể hay Đội Cô Dâu?",
+      subtitle: "Bình chọn nào!",
+      teamGroom: "Đội Chú Rể",
+      teamBride: "Đội Cô Dâu",
+      votes: "lượt bình chọn",
     },
     photos: {
       title: "Kỷ Niệm Qua Ảnh",
