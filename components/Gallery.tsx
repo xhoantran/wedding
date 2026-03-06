@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import Image from "next/image";
 import { GALLERY_IMAGES, ALL_GALLERY_IMAGES } from "@/lib/constants";
 import { getTranslations } from "@/lib/i18n";
-import { Locale } from "@/lib/types";
+import { Locale, GalleryImage } from "@/lib/types";
+import { useGuest } from "@/lib/guest-context";
 import SectionHeading from "./SectionHeading";
 import Lightbox from "./Lightbox";
 import GalleryModal from "./GalleryModal";
@@ -21,6 +22,20 @@ function ImagePlaceholder() {
 export default function Gallery({ locale }: { locale: Locale }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const { guestPhotos } = useGuest();
+
+  // Merge guest's tea-ceremony photos into the modal image list
+  const modalImages = useMemo(() => {
+    if (guestPhotos.size === 0) return ALL_GALLERY_IMAGES;
+    const existingSrcs = new Set(ALL_GALLERY_IMAGES.map((img) => img.src));
+    const extra: GalleryImage[] = [];
+    for (const src of guestPhotos) {
+      if (!existingSrcs.has(src)) {
+        extra.push({ src, alt: "Guest photo" });
+      }
+    }
+    return [...ALL_GALLERY_IMAGES, ...extra];
+  }, [guestPhotos]);
   const targetRef = useRef(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const overflowRef = useRef(0);
@@ -63,34 +78,44 @@ export default function Gallery({ locale }: { locale: Locale }) {
               style={{ x }}
               className="flex gap-5 pl-[8vw] pr-[20vw] md:gap-7"
             >
-              {GALLERY_IMAGES.map((image, index) => (
-                <motion.div
-                  key={image.src}
-                  whileHover={{ scale: 1.03, rotateY: 2, rotateX: -2 }}
-                  transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                  className={`relative shrink-0 cursor-pointer overflow-hidden rounded-xl shadow-lg ${
-                    index % 3 === 0
-                      ? "h-[45vh] w-[65vw] md:w-[22vw]"
-                      : index % 3 === 1
-                        ? "h-[55vh] w-[60vw] md:w-[20vw]"
-                        : "h-[42vh] w-[70vw] md:w-[24vw]"
-                  }`}
-                  style={{ perspective: 800 }}
-                  onClick={() => setLightboxIndex(index)}
-                >
-                  <ImagePlaceholder />
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="relative z-1 object-cover"
-                    sizes="40vw"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = "none";
-                    }}
-                  />
-                </motion.div>
-              ))}
+              {GALLERY_IMAGES.map((image, index) => {
+                const isGuestPhoto = guestPhotos.has(image.src);
+                return (
+                  <motion.div
+                    key={image.src}
+                    whileHover={{ scale: 1.03, rotateY: 2, rotateX: -2 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className={`relative shrink-0 cursor-pointer overflow-hidden rounded-xl shadow-lg ${
+                      isGuestPhoto ? "ring-2 ring-gold ring-offset-2 ring-offset-cream" : ""
+                    } ${
+                      index % 3 === 0
+                        ? "h-[45vh] w-[65vw] md:w-[22vw]"
+                        : index % 3 === 1
+                          ? "h-[55vh] w-[60vw] md:w-[20vw]"
+                          : "h-[42vh] w-[70vw] md:w-[24vw]"
+                    }`}
+                    style={{ perspective: 800 }}
+                    onClick={() => setLightboxIndex(index)}
+                  >
+                    <ImagePlaceholder />
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="relative z-1 object-cover"
+                      sizes="40vw"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
+                    />
+                    {isGuestPhoto && (
+                      <span className="absolute top-2 right-2 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-gold text-[10px] text-white shadow">
+                        &#x2605;
+                      </span>
+                    )}
+                  </motion.div>
+                );
+              })}
 
               {/* View All button */}
               <div className="flex h-[45vh] w-[50vw] shrink-0 items-center justify-center md:w-[16vw]">
@@ -127,7 +152,9 @@ export default function Gallery({ locale }: { locale: Locale }) {
 
       {showModal && (
         <GalleryModal
-          images={ALL_GALLERY_IMAGES}
+          images={modalImages}
+          guestPhotos={guestPhotos}
+          locale={locale}
           onClose={() => setShowModal(false)}
         />
       )}

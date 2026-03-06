@@ -10,7 +10,7 @@ OUTPUT_DIR = Path(__file__).parent / "output"
 CLUSTERS_RAW_FILE = OUTPUT_DIR / "clusters_raw.json"
 MAPPING_FILE = Path(__file__).parent / "cluster_mapping.json"
 GROUPS_FILE = Path(__file__).parent / "invite_groups.json"
-GUESTS_FILE = Path(__file__).parent.parent / "public" / "data" / "guests.json"
+GUESTS_FILE = Path(__file__).parent.parent / "data" / "guests.json"
 
 
 def slugify(name: str) -> str:

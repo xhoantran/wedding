@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { WEDDING, HERO_IMAGE, getDisplayDate } from "@/lib/constants";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
+import { useGuest } from "@/lib/guest-context";
 import CountdownTimer from "./CountdownTimer";
 import TextReveal from "./TextReveal";
 
@@ -18,7 +19,11 @@ export default function Hero({ locale }: { locale: Locale }) {
   const y = useTransform(scrollYProgress, [0, 1], [0, -150]);
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-  const t = getTranslations(locale).hero;
+  const t = getTranslations(locale);
+  const { guest } = useGuest();
+  const greeting = guest
+    ? t.invite.greeting.replace("{name}", guest.names.join(" & "))
+    : null;
 
   return (
     <section
@@ -49,13 +54,24 @@ export default function Hero({ locale }: { locale: Locale }) {
         className="relative z-10 flex flex-col items-center gap-5 text-center"
         style={{ opacity: contentOpacity }}
       >
+        {greeting && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            className="font-serif text-lg italic text-gold-light md:text-xl"
+          >
+            {greeting}
+          </motion.p>
+        )}
+
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.8, delay: greeting ? 0.3 : 0.2, ease: [0.22, 1, 0.36, 1] }}
           className="text-xs font-medium uppercase tracking-[0.3em] text-white/70"
         >
-          {t.familyLine}
+          {t.hero.familyLine}
         </motion.p>
 
         {/* Names — dramatic character reveal with ornamental frame */}
@@ -156,7 +172,7 @@ export default function Hero({ locale }: { locale: Locale }) {
           }}
           className="text-xs tracking-[0.2em] text-white/60"
         >
-          {t.location}
+          {t.hero.location}
         </motion.p>
 
         <motion.div

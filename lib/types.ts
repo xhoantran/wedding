@@ -6,6 +6,15 @@ export interface GalleryImage {
   tall?: boolean;
 }
 
+export interface GuestData {
+  names: string[];
+  featuredPhotos: string[];
+  photos: string[];
+  message?: string;
+}
+
+export type GuestsMap = Record<string, GuestData>;
+
 export interface WeddingInfo {
   groomName: string;
   brideName: string;

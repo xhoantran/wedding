@@ -108,6 +108,14 @@ const translations = {
       errorTooSoon: "Please wait a moment before sending another wish.",
       emptyState: "Be the first to leave a wish!",
     },
+    invite: {
+      greeting: "Dear {name},",
+      welcomeMessage:
+        "We would be honored to have you celebrate with us",
+      openInvitation: "Open your invitation",
+      yourPhotos: "Your Photos",
+      allPhotos: "All Photos",
+    },
   },
   vi: {
     hero: {
@@ -215,6 +223,14 @@ const translations = {
       errorGeneric: "Đã xảy ra lỗi. Vui lòng thử lại.",
       errorTooSoon: "Vui lòng đợi một chút trước khi gửi lời chúc tiếp.",
       emptyState: "Hãy là người đầu tiên gửi lời chúc!",
+    },
+    invite: {
+      greeting: "Thân gửi {name},",
+      welcomeMessage:
+        "Chúng tôi rất hân hạnh được đón tiếp bạn",
+      openInvitation: "Mở thiệp mời của bạn",
+      yourPhotos: "Ảnh Của Bạn",
+      allPhotos: "Tất Cả Ảnh",
     },
   },
 } as const;

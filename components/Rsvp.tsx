@@ -6,6 +6,7 @@ import { submitRsvp, RsvpState } from "@/app/[locale]/actions/rsvp";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import { useWeddingStore } from "@/lib/store";
+import { useGuest } from "@/lib/guest-context";
 import SectionHeading from "./SectionHeading";
 import ScrollReveal from "./ScrollReveal";
 import MagneticButton from "./MagneticButton";
@@ -19,6 +20,7 @@ export default function Rsvp({ locale }: { locale: Locale }) {
   );
   const [attendance, setAttendance] = useState<string>("");
   const setHasRsvped = useWeddingStore((s) => s.setHasRsvped);
+  const { guest, inviteId } = useGuest();
 
   useEffect(() => {
     if (state.success) setHasRsvped();
@@ -105,12 +107,17 @@ export default function Rsvp({ locale }: { locale: Locale }) {
             >
               <ScrollReveal>
                 <div className="space-y-6">
+                  {inviteId && (
+                    <input type="hidden" name="inviteId" value={inviteId} />
+                  )}
+
                   {/* Name */}
                   <div className="input-underline">
                     <input
                       type="text"
                       name="name"
                       placeholder={t.name}
+                      defaultValue={guest?.names.join(" & ") || ""}
                       required
                       className="w-full border-b border-rose/30 bg-transparent px-1 py-3 text-charcoal outline-none placeholder:text-stone/40"
                     />
