@@ -110,10 +110,12 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
               <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
                 {displayDate} &middot; {WEDDING.ceremonyTime}
               </p>
-              <p className="mt-4 font-serif text-lg text-charcoal">
-                {WEDDING.ceremonyVenue}
-              </p>
-              <p className="mt-1 text-sm text-stone">
+              {WEDDING.ceremonyVenue && (
+                <p className="mt-4 font-serif text-lg text-charcoal">
+                  {WEDDING.ceremonyVenue}
+                </p>
+              )}
+              <p className={`${WEDDING.ceremonyVenue ? "mt-1" : "mt-4"} text-sm text-stone`}>
                 {WEDDING.ceremonyAddress}
               </p>
               <a

@@ -8,10 +8,10 @@ export const WEDDING: WeddingInfo = {
   displayDate: "January 17, 2027",
   ceremonyTime: "10:00 AM",
   receptionTime: "6:00 PM",
-  ceremonyVenue: "Nhà thờ Núi - Nha Trang Cathedral",
-  ceremonyAddress: "27 Thái Nguyên, Phước Tân, Nha Trang, Khánh Hòa, Vietnam",
+  ceremonyVenue: "",
+  ceremonyAddress: "763 Đường 23/10, Vĩnh Thạnh, Nha Trang, Khánh Hòa, Việt Nam",
   receptionVenue: "InterContinental Nha Trang",
-  receptionAddress: "32-34 Trần Phú, phường, Nha Trang, Khánh Hòa, Vietnam",
+  receptionAddress: "32-34 Trần Phú, phường, Nha Trang, Khánh Hòa, Việt Nam",
   hashtag: "#HoanAndThy2027",
 };
 
