@@ -71,16 +71,12 @@ body::after {
   color: var(--charcoal);
 }
 
-/* Custom scrollbar */
+/* Hide scrollbar */
+html {
+  scrollbar-width: none;
+}
 ::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--cream);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--rose);
-  border-radius: 3px;
+  display: none;
 }
 
 /* Animated input focus underline */

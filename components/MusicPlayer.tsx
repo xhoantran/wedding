@@ -4,22 +4,33 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Locale } from "@/lib/types";
 
-const MUSIC: Record<Locale, { src: string; title: string; artist: string }> = {
-  vi: { src: "/music/vi.mp3", title: "Ngày Đầu Tiên", artist: "Đức Phúc" },
-  en: { src: "/music/en.mp3", title: "Ordinary", artist: "Alex Warren" },
+type Track = { src: string; title: string; artist: string };
+
+const MUSIC: Record<Locale, Track[]> = {
+  vi: [
+    { src: "/music/vi.mp3", title: "Ngày Đầu Tiên", artist: "Đức Phúc" },
+    { src: "/music/vi2.mp3", title: "Gặp Gỡ, Yêu Đương Và Được Bên Em", artist: "Phan Mạnh Quỳnh" },
+    { src: "/music/vi3.mp3", title: "Lễ Đường", artist: "Kai Đinh" },
+  ],
+  en: [
+    { src: "/music/en.mp3", title: "Ordinary", artist: "Alex Warren" },
+  ],
 };
 
 export default function MusicPlayer({ locale }: { locale: Locale }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [trackIndex, setTrackIndex] = useState(0);
+
+  const playlist = MUSIC[locale];
+  const track = playlist[trackIndex];
 
   useEffect(() => {
     const audio = new Audio();
     audio.preload = "auto";
-    audio.loop = true;
     audio.volume = 0.3;
-    audio.src = MUSIC[locale].src;
+    audio.src = track.src;
     audioRef.current = audio;
 
     const updateProgress = () => {
@@ -27,7 +38,13 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
         setProgress(audio.currentTime / audio.duration);
       }
     };
+
+    const onEnded = () => {
+      setTrackIndex((prev) => (prev + 1) % playlist.length);
+    };
+
     audio.addEventListener("timeupdate", updateProgress);
+    audio.addEventListener("ended", onEnded);
 
     let started = false;
     const tryPlay = () => {
@@ -42,17 +59,18 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
         .catch(() => {});
     };
 
-    const events = ["click", "touchstart", "keydown", "wheel", "pointerdown"] as const;
+    const events = ["click", "touchstart", "keydown", "pointerdown"] as const;
     const cleanup = () => events.forEach((e) => document.removeEventListener(e, tryPlay));
     events.forEach((e) => document.addEventListener(e, tryPlay, { passive: true }));
 
     return () => {
       cleanup();
       audio.removeEventListener("timeupdate", updateProgress);
+      audio.removeEventListener("ended", onEnded);
       audio.pause();
       audio.src = "";
     };
-  }, [locale]);
+  }, [locale, trackIndex, playlist, track.src]);
 
   const toggle = useCallback(() => {
     const audio = audioRef.current;
@@ -68,7 +86,10 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
     }
   }, [playing]);
 
-  const track = MUSIC[locale];
+  const skip = useCallback(() => {
+    setTrackIndex((prev) => (prev + 1) % playlist.length);
+    setProgress(0);
+  }, [playlist.length]);
 
   return (
     <motion.div
@@ -139,10 +160,33 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
         </div>
 
         {/* Song info */}
-        <div className="flex flex-col whitespace-nowrap leading-none">
-          <span className="text-[10px] font-medium text-white">{track.title}</span>
-          <span className="text-[9px] text-white/45">{track.artist}</span>
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={trackIndex}
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col whitespace-nowrap leading-none"
+          >
+            <span className="max-w-30 truncate text-[10px] font-medium text-white">{track.title}</span>
+            <span className="text-[9px] text-white/45">{track.artist}</span>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Skip button (only for playlists with multiple tracks) */}
+        {playlist.length > 1 && (
+          <button
+            onClick={skip}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white/50 transition-colors hover:text-white"
+            aria-label="Next track"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <path d="M1 1L6 5L1 9V1Z" />
+              <rect x="7" y="1" width="1.5" height="8" rx="0.5" />
+            </svg>
+          </button>
+        )}
 
         {/* Circular progress */}
         <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0 -rotate-90">

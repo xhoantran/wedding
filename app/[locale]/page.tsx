@@ -32,14 +32,27 @@ export default function Home() {
     return () => cancelFrame(update);
   }, []);
 
-  // Block scrolling while preloader is visible
+  // Block all scrolling while preloader is visible
   useEffect(() => {
-    const lenis = lenisRef.current?.lenis;
-    if (!lenis) return;
-    if (loaded) {
-      lenis.start();
+    const html = document.documentElement;
+    const body = document.body;
+
+    if (!loaded) {
+      html.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      // Lenis may not be ready yet — poll until we can stop it
+      const id = setInterval(() => {
+        const lenis = lenisRef.current?.lenis;
+        if (lenis) {
+          lenis.stop();
+          clearInterval(id);
+        }
+      }, 50);
+      return () => clearInterval(id);
     } else {
-      lenis.stop();
+      html.style.overflow = "";
+      body.style.overflow = "";
+      lenisRef.current?.lenis?.start();
     }
   }, [loaded]);
 
