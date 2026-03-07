@@ -9,6 +9,7 @@ import {
   saveGuestNote,
   createGuest,
   deleteGuest,
+  updateGuestCeremony,
   GuestRow,
 } from "./actions";
 
@@ -176,6 +177,7 @@ function AddGuestForm({ onCreated }: { onCreated: () => void }) {
   const [names, setNames] = useState("");
   const [vnTitle, setVnTitle] = useState("");
   const [message, setMessage] = useState("");
+  const [ceremony, setCeremony] = useState(false);
   const [createdUrl, setCreatedUrl] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -190,7 +192,7 @@ function AddGuestForm({ onCreated }: { onCreated: () => void }) {
       return;
     }
     startTransition(async () => {
-      const result = await createGuest(nameList, vnTitle || undefined, message || undefined);
+      const result = await createGuest(nameList, vnTitle || undefined, message || undefined, ceremony);
       if ("error" in result) {
         setError(result.error);
       } else {
@@ -199,6 +201,7 @@ function AddGuestForm({ onCreated }: { onCreated: () => void }) {
         setNames("");
         setVnTitle("");
         setMessage("");
+        setCeremony(false);
         onCreated();
       }
     });
@@ -229,6 +232,15 @@ function AddGuestForm({ onCreated }: { onCreated: () => void }) {
           placeholder="Message (optional)"
           className="flex-1 min-w-48 rounded border border-stone-300 px-3 py-1.5 text-sm text-stone-800 outline-none focus:border-stone-500"
         />
+        <label className="flex items-center gap-1.5 text-sm text-stone-600">
+          <input
+            type="checkbox"
+            checked={ceremony}
+            onChange={(e) => setCeremony(e.target.checked)}
+            className="rounded border-stone-300"
+          />
+          Ceremony
+        </label>
         <button
           type="submit"
           disabled={isPending}
@@ -343,15 +355,22 @@ function GuestTable({ rows, onRefresh }: { rows: GuestRow[]; onRefresh: () => vo
                   {row.names}
                 </td>
                 <td className="px-4 py-2.5">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                      row.hasPhotos
-                        ? "bg-blue-100 text-blue-700"
-                        : "bg-amber-100 text-amber-700"
-                    }`}
-                  >
-                    {row.hasPhotos ? `${row.photoCount} photos` : "invite"}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span
+                      className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                        row.hasPhotos
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {row.hasPhotos ? `${row.photoCount} photos` : "invite"}
+                    </span>
+                    {row.ceremony && (
+                      <span className="inline-block rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-medium text-purple-700">
+                        ceremony
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="whitespace-nowrap px-4 py-2.5 text-stone-500">
                   {row.vnTitle || "-"}
@@ -392,6 +411,21 @@ function GuestTable({ rows, onRefresh }: { rows: GuestRow[]; onRefresh: () => vo
                         <path d="M4 5a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 14h5a1.5 1.5 0 0 0 1.5-1.5V8.621a1.5 1.5 0 0 0-.44-1.06L7.94 5.439A1.5 1.5 0 0 0 6.878 5H4Z" />
                       </svg>
                     </button>
+                    {!row.hasPhotos && (
+                      <button
+                        onClick={async () => {
+                          const ok = await updateGuestCeremony(row.id, !row.ceremony);
+                          if (ok) onRefresh();
+                        }}
+                        title={row.ceremony ? "Remove from ceremony" : "Add to ceremony"}
+                        className={`rounded p-1 ${row.ceremony ? "text-purple-500 hover:bg-purple-50" : "text-stone-400 hover:bg-stone-100 hover:text-stone-600"}`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                          <circle cx="5.5" cy="8" r="3.5" stroke="currentColor" strokeWidth="0.5" fill="none" />
+                          <circle cx="10.5" cy="8" r="3.5" stroke="currentColor" strokeWidth="0.5" fill="none" />
+                        </svg>
+                      </button>
+                    )}
                     {!row.hasPhotos && (
                       <button
                         onClick={() => handleDelete(row.id)}

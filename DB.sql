@@ -53,6 +53,7 @@ CREATE TABLE guests (
   vn_title TEXT DEFAULT '',
   avatar TEXT DEFAULT '',
   message TEXT DEFAULT '',
+  ceremony BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

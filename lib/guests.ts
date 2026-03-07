@@ -43,6 +43,7 @@ export async function getGuest(id: string): Promise<GuestData | null> {
     featuredPhotos: [],
     photos: [],
     message: data.message || undefined,
+    ceremony: data.ceremony ?? false,
   };
 }
 

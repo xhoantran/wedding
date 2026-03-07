@@ -83,7 +83,7 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
         <PhotoBreak />
         <FeaturedGuestSection locale={locale} />
         <RomanticQuote locale={locale} />
-        <WeddingDetails locale={locale} />
+        <WeddingDetails locale={locale} showCeremony={guest?.ceremony} />
         <Gallery locale={locale} />
         <Rsvp locale={locale} />
         {hasRsvped && (

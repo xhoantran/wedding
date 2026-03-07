@@ -14,6 +14,7 @@ export interface GuestData {
   featuredPhotos: string[];
   photos: string[];
   message?: string;
+  ceremony?: boolean;
 }
 
 export type GuestsMap = Record<string, GuestData>;

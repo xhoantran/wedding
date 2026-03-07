@@ -41,6 +41,7 @@ export interface GuestRow {
   rsvpMessage: string;
   rsvpDate: string;
   note: string;
+  ceremony: boolean;
 }
 
 export async function fetchGuestList(): Promise<GuestRow[]> {
@@ -84,6 +85,7 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       rsvpMessage: rsvp ? String(rsvp.message ?? "") : "",
       rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
       note: noteMap.get(g.id) ?? "",
+      ceremony: g.ceremony ?? false,
     });
   }
 
@@ -104,6 +106,7 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       rsvpMessage: rsvp ? String(rsvp.message ?? "") : "",
       rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
       note: noteMap.get(g.id) ?? "",
+      ceremony: g.ceremony ?? false,
     });
   }
 
@@ -126,7 +129,8 @@ export async function saveGuestNote(guestId: string, note: string) {
 export async function createGuest(
   names: string[],
   vnTitle?: string,
-  message?: string
+  message?: string,
+  ceremony?: boolean
 ): Promise<{ id: string } | { error: string }> {
   const id = randomUUID();
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -135,6 +139,7 @@ export async function createGuest(
     names,
     vn_title: vnTitle || "",
     message: message || "",
+    ceremony: ceremony ?? false,
   });
 
   if (error) {
@@ -161,6 +166,20 @@ export async function deleteGuest(
     return { success: false, error: error.message };
   }
   return { success: true };
+}
+
+export async function updateGuestCeremony(id: string, ceremony: boolean) {
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { error } = await supabase
+    .from("guests")
+    .update({ ceremony })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating ceremony:", error);
+    return false;
+  }
+  return true;
 }
 
 export async function fetchAllCounts() {

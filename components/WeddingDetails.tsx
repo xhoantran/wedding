@@ -90,7 +90,7 @@ const cardVariantRight = {
   },
 };
 
-export default function WeddingDetails({ locale }: { locale: Locale }) {
+export default function WeddingDetails({ locale, showCeremony }: { locale: Locale; showCeremony?: boolean }) {
   const t = getTranslations(locale).details;
   const displayDate = getDisplayDate(locale);
 
@@ -104,43 +104,45 @@ export default function WeddingDetails({ locale }: { locale: Locale }) {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="flex flex-col gap-6 md:flex-row md:gap-10"
+          className={showCeremony ? "flex flex-col gap-6 md:flex-row md:gap-10" : "mx-auto max-w-lg"}
         >
-          <motion.div variants={cardVariantLeft} className="flex-1">
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.3 }}
-              className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
-            >
-              <CornerAccents />
-              <RingsIcon />
-              <h3 className="font-serif text-2xl font-light text-charcoal">
-                {t.ceremony}
-              </h3>
-              <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
-                {displayDate} &middot; {WEDDING.ceremonyTime}
-              </p>
-              {WEDDING.ceremonyVenue && (
-                <p className="mt-4 font-serif text-lg text-charcoal">
-                  {WEDDING.ceremonyVenue}
-                </p>
-              )}
-              <p className={`${WEDDING.ceremonyVenue ? "mt-1" : "mt-4"} text-sm text-stone`}>
-                {WEDDING.ceremonyAddress}
-              </p>
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.ceremonyAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative mt-4 inline-block text-sm text-gold"
+          {showCeremony && (
+            <motion.div variants={cardVariantLeft} className="flex-1">
+              <motion.div
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.3 }}
+                className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
               >
-                {t.viewMap}
-                <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-100 bg-gold/40 transition-all duration-300 group-hover:scale-x-100 group-hover:bg-gold" />
-              </a>
+                <CornerAccents />
+                <RingsIcon />
+                <h3 className="font-serif text-2xl font-light text-charcoal">
+                  {t.ceremony}
+                </h3>
+                <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
+                  {displayDate} &middot; {WEDDING.ceremonyTime}
+                </p>
+                {WEDDING.ceremonyVenue && (
+                  <p className="mt-4 font-serif text-lg text-charcoal">
+                    {WEDDING.ceremonyVenue}
+                  </p>
+                )}
+                <p className={`${WEDDING.ceremonyVenue ? "mt-1" : "mt-4"} text-sm text-stone`}>
+                  {WEDDING.ceremonyAddress}
+                </p>
+                <a
+                  href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.ceremonyAddress)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative mt-4 inline-block text-sm text-gold"
+                >
+                  {t.viewMap}
+                  <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-100 bg-gold/40 transition-all duration-300 group-hover:scale-x-100 group-hover:bg-gold" />
+                </a>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          )}
 
-          <motion.div variants={cardVariantRight} className="flex-1">
+          <motion.div variants={showCeremony ? cardVariantRight : cardVariantLeft} className={showCeremony ? "flex-1" : ""}>
             <motion.div
               whileHover={{ y: -4 }}
               transition={{ duration: 0.3 }}
