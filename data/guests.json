@@ -29,16 +29,23 @@
       "Ted"
     ],
     "avatar": [
-      "/images/tea-ceremony/anh-film/000025770029.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9750.jpg",
       "/images/tea-ceremony/truyen-thong/SEKUN0760.jpg"
     ],
     "featuredPhotos": [
+      "/images/tea-ceremony/anh-film/000025770029.jpg",
+      "/images/tea-ceremony/khach/SEKUN0001.jpg",
       "/images/tea-ceremony/khach/SEKUN0028.jpg",
       "/images/tea-ceremony/khach/SEKUN0855.jpg",
+      "/images/tea-ceremony/khach/SEKUN0862.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9750.jpg",
       "/images/tea-ceremony/phong-su/SEKUN9774.jpg",
       "/images/tea-ceremony/phong-su/SEKUN9826.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9955.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN0045.jpg",
       "/images/tea-ceremony/truyen-thong/SEKUN0336.jpg",
-      "/images/tea-ceremony/truyen-thong/SEKUN0760.jpg"
+      "/images/tea-ceremony/truyen-thong/SEKUN0760.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN9655.jpg"
     ],
     "photos": [
       "/images/tea-ceremony/anh-film/000025770029.jpg",
@@ -2080,9 +2087,20 @@
       "Hannah"
     ],
     "avatar": [
-      "/images/tea-ceremony/anh-film/000025770029.jpg"
+      "/images/tea-ceremony/phong-su/SEKUN9750.jpg"
     ],
-    "featuredPhotos": [],
+    "featuredPhotos": [
+      "/images/tea-ceremony/khach/SEKUN0001.jpg",
+      "/images/tea-ceremony/khach/SEKUN0028.jpg",
+      "/images/tea-ceremony/anh-film/000025770029.jpg",
+      "/images/tea-ceremony/khach/SEKUN0855.jpg",
+      "/images/tea-ceremony/khach/SEKUN0862.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9750.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN9655.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN0045.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9826.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9955.jpg"
+    ],
     "photos": [
       "/images/tea-ceremony/anh-film/000025770029.jpg",
       "/images/tea-ceremony/khach/SEKUN0001.jpg",

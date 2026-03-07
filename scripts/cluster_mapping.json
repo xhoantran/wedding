@@ -62,7 +62,20 @@
   },
   "cluster_5": {
     "name": "Hannah",
-    "id": "58b587f1-1506-4778-b62f-9bb4b76af7ca"
+    "id": "58b587f1-1506-4778-b62f-9bb4b76af7ca",
+    "avatar": "/images/tea-ceremony/phong-su/SEKUN9750.jpg",
+    "featuredPhotos": [
+      "/images/tea-ceremony/khach/SEKUN0001.jpg",
+      "/images/tea-ceremony/khach/SEKUN0028.jpg",
+      "/images/tea-ceremony/anh-film/000025770029.jpg",
+      "/images/tea-ceremony/khach/SEKUN0855.jpg",
+      "/images/tea-ceremony/khach/SEKUN0862.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9750.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN9655.jpg",
+      "/images/tea-ceremony/truyen-thong/SEKUN0045.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9826.jpg",
+      "/images/tea-ceremony/phong-su/SEKUN9955.jpg"
+    ]
   },
   "cluster_6": {
     "name": "Jimmy",
