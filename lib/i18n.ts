@@ -3,7 +3,7 @@ import { Locale } from "./types";
 const translations = {
   en: {
     hero: {
-      familyLine: "Together with their families",
+      familyLine: "Together with our families",
       location: "Nha Trang, Vietnam",
       scroll: "Scroll",
     },
