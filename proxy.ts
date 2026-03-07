@@ -30,6 +30,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/images") ||
     pathname.startsWith("/api") ||
+    pathname.startsWith("/admin") ||
     pathname.includes(".")
   ) {
     return;
