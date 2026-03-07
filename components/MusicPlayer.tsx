@@ -31,6 +31,10 @@ const MUSIC: Record<Locale, Track[]> = {
     { src: "/music/en2.mp3", title: "Can't Help Falling In Love", artist: "Elvis Presley" },
     { src: "/music/en3.mp3", title: "Until I Found You", artist: "Stephen Sanchez" },
     { src: "/music/en4.mp3", title: "Lover", artist: "Taylor Swift" },
+    { src: "/music/en5.mp3", title: "You Are The Reason", artist: "Calum Scott" },
+    { src: "/music/en6.mp3", title: "Love Someone", artist: "Lukas Graham" },
+    { src: "/music/en7.mp3", title: "Speechless", artist: "Dan + Shay" },
+    { src: "/music/en8.mp3", title: "Bloom", artist: "The Paper Kites" },
   ],
 };
 
