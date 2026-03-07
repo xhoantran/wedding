@@ -15,6 +15,7 @@ import Hero from "@/components/Hero";
 import PhotoBreak from "@/components/PhotoBreak";
 import WeddingDetails from "@/components/WeddingDetails";
 import RomanticQuote from "@/components/RomanticQuote";
+import FeaturedGuestSection from "@/components/FeaturedGuestSection";
 import Gallery from "@/components/Gallery";
 import Rsvp from "@/components/Rsvp";
 import TeamPoll from "@/components/TeamPoll";
@@ -80,8 +81,9 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
         <Navigation locale={locale} />
         <Hero locale={locale} />
         <PhotoBreak />
-        <WeddingDetails locale={locale} />
+        <FeaturedGuestSection locale={locale} />
         <RomanticQuote locale={locale} />
+        <WeddingDetails locale={locale} />
         <Gallery locale={locale} />
         <Rsvp locale={locale} />
         {hasRsvped && (

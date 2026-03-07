@@ -38,7 +38,7 @@ def photo_web_path(face: dict) -> str:
     return f"{prefix}/{face['photo']}"
 
 
-def pick_featured_photo(faces: list[dict]) -> str:
+def pick_avatar(faces: list[dict]) -> str:
     """Pick the photo where this person's face is largest (most prominent)."""
     best = max(faces, key=lambda f: _face_area(f["location"]))
     return photo_web_path(best)
@@ -50,7 +50,7 @@ def _face_area(location: list[int]) -> int:
 
 
 def build_person_data(clusters, mapping) -> dict:
-    """Build per-person data: {slug: {name, featuredPhoto, photos}}."""
+    """Build per-person data: {slug: {name, avatar, featuredPhotos, photos}}."""
     persons: dict = {}
 
     for cluster_key, info in mapping.items():
@@ -64,16 +64,22 @@ def build_person_data(clusters, mapping) -> dict:
 
         slug = slugify(info["name"])
         photos = sorted(set(photo_web_path(f) for f in faces))
-        featured = pick_featured_photo(faces)
+        avatar = info.get("avatar") or pick_avatar(faces)
+        featured = info.get("featuredPhotos", [])
 
         if slug in persons:
             existing_photos = set(persons[slug]["photos"])
             existing_photos.update(photos)
             persons[slug]["photos"] = sorted(existing_photos)
+            # Merge featured photos
+            existing_featured = set(persons[slug]["featuredPhotos"])
+            existing_featured.update(featured)
+            persons[slug]["featuredPhotos"] = sorted(existing_featured)
         else:
             persons[slug] = {
                 "name": info["name"],
-                "featuredPhoto": featured,
+                "avatar": avatar,
+                "featuredPhotos": featured,
                 "photos": photos,
             }
 
@@ -104,6 +110,7 @@ def main():
         code = group.get("code") or "-".join(members)
 
         names = []
+        avatar = None
         featured_photos = []
         all_photos: set = set()
 
@@ -113,14 +120,17 @@ def main():
                 continue
             p = persons[slug]
             names.append(p["name"])
-            featured_photos.append(p["featuredPhoto"])
+            if avatar is None:
+                avatar = p["avatar"]
+            featured_photos.extend(p["featuredPhotos"])
             all_photos.update(p["photos"])
             grouped_slugs.add(slug)
 
         if names:
             entry = {
                 "names": names,
-                "featuredPhotos": featured_photos,
+                "avatar": avatar,
+                "featuredPhotos": sorted(set(featured_photos)),
                 "photos": sorted(all_photos),
             }
             if group.get("message"):
@@ -139,7 +149,8 @@ def main():
             continue
         entry = {
             "names": [p["name"]],
-            "featuredPhotos": [p["featuredPhoto"]],
+            "avatar": p["avatar"],
+            "featuredPhotos": p["featuredPhotos"],
             "photos": p["photos"],
         }
         if slug in person_messages:

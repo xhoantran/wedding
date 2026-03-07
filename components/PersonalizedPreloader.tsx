@@ -22,7 +22,7 @@ export default function PersonalizedPreloader({
   const displayName = guest.names.join(" & ");
   const greeting = t.greeting.replace("{name}", displayName);
   const message = guest.message || t.welcomeMessage;
-  const featuredPhoto = guest.featuredPhotos[0];
+  const avatarPhoto = guest.avatar;
 
   useEffect(() => {
     if (!ready || exit) return;
@@ -50,9 +50,9 @@ export default function PersonalizedPreloader({
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             className="relative h-28 w-28 overflow-hidden rounded-full ring-2 ring-gold/40 ring-offset-4 ring-offset-cream md:h-36 md:w-36"
           >
-            {featuredPhoto && (
+            {avatarPhoto && (
               <Image
-                src={featuredPhoto}
+                src={avatarPhoto}
                 alt={displayName}
                 fill
                 className="object-cover"

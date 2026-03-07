@@ -115,6 +115,8 @@ const translations = {
       openInvitation: "Open your invitation",
       yourPhotos: "Your Photos",
       allPhotos: "All Photos",
+      featuredHeading: "Thank you, {name}",
+      featuredSubheading: "for being part of our journey",
     },
   },
   vi: {
@@ -231,6 +233,8 @@ const translations = {
       openInvitation: "Mở thiệp mời của bạn",
       yourPhotos: "Ảnh Của Bạn",
       allPhotos: "Tất Cả Ảnh",
+      featuredHeading: "Cảm ơn {name}",
+      featuredSubheading: "đã là một phần trong hành trình này",
     },
   },
 } as const;

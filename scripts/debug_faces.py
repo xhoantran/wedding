@@ -24,6 +24,14 @@ GROUPS_FILE = SCRIPTS_DIR / "invite_groups.json"
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 
+DIR_TO_WEB_PATH = {
+    "khach": "/images/tea-ceremony/khach",
+    "phong-su": "/images/tea-ceremony/phong-su",
+    "anh-film": "/images/tea-ceremony/anh-film",
+    "truyen-thong": "/images/tea-ceremony/truyen-thong",
+    "gallery": "/images/gallery",
+}
+
 PHOTO_DIRS = [
     ("tea-ceremony/khach", PROJECT_ROOT / "public" / "images" / "tea-ceremony" / "khach"),
     ("tea-ceremony/phong-su", PROJECT_ROOT / "public" / "images" / "tea-ceremony" / "phong-su"),
@@ -83,6 +91,12 @@ def build_clusters_data():
         except (IndexError, ValueError):
             pass
 
+        # Build web paths for each photo
+        photo_web_paths = sorted(set(
+            f"{DIR_TO_WEB_PATH.get(f.get('source_dir', ''), '/images/gallery')}/{f['photo']}"
+            for f in faces
+        ))
+
         if num == -1:
             # Keep noise as one entry
             result.append({
@@ -91,9 +105,12 @@ def build_clusters_data():
                 "faces": faces,
                 "faceCount": len(faces),
                 "photos": sorted(set(f["photo"] for f in faces)),
+                "photoWebPaths": photo_web_paths,
                 "name": None,
                 "message": "",
                 "skipped": False,
+                "avatar": None,
+                "featuredPhotos": [],
             })
             continue
 
@@ -104,9 +121,12 @@ def build_clusters_data():
             "faces": faces,
             "faceCount": len(faces),
             "photos": sorted(set(f["photo"] for f in faces)),
+            "photoWebPaths": photo_web_paths,
             "name": m["name"] if m else None,
             "message": m.get("message", "") if m else "",
             "skipped": m is None and key in mapping,
+            "avatar": m.get("avatar") if m else None,
+            "featuredPhotos": m.get("featuredPhotos", []) if m else [],
         })
 
     result.sort(key=lambda c: (0 if c["num"] >= 0 else 1, c["num"]))
@@ -177,8 +197,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .cluster-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .cluster-actions input { padding: 6px 12px; border: 1px solid #444; background: #1a1a1a; color: #eee; border-radius: 6px; font-size: 13px; width: 200px; }
   .cluster-actions .btn { padding: 6px 14px; font-size: 12px; }
-  .cluster-photos { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .cluster-photos img { height: 120px; object-fit: cover; border-radius: 4px; cursor: pointer; }
+  .cluster-photos { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
+  .photo-thumb-wrap { position: relative; display: inline-block; }
+  .photo-thumb-wrap img { height: 120px; object-fit: cover; border-radius: 4px; cursor: pointer; border: 3px solid transparent; }
+  .photo-thumb-wrap.is-avatar img { border-color: #3b82f6; }
+  .photo-thumb-wrap.is-featured img { border-color: #f59e0b; }
+  .photo-thumb-wrap.is-avatar.is-featured img { border-color: #f59e0b; box-shadow: 0 0 0 2px #3b82f6; }
+  .photo-overlay-btns { position: absolute; top: 4px; left: 4px; right: 4px; display: flex; justify-content: space-between; pointer-events: none; }
+  .photo-overlay-btns button { pointer-events: auto; width: 26px; height: 26px; border: none; border-radius: 50%; cursor: pointer; font-size: 14px; line-height: 26px; text-align: center; opacity: 0.7; transition: opacity 0.15s; }
+  .photo-overlay-btns button:hover { opacity: 1; }
+  .avatar-btn { background: #1e3a5f; color: #60a5fa; }
+  .avatar-btn.active { background: #3b82f6; color: #fff; opacity: 1 !important; }
+  .star-btn { background: #5c4a1e; color: #fbbf24; }
+  .star-btn.active { background: #f59e0b; color: #fff; opacity: 1 !important; }
 
   /* Noise rows */
   .noise-list { display: flex; flex-direction: column; gap: 8px; }
@@ -450,6 +481,22 @@ function renderClusters() {
       .map(x => `<option value="${x.key}">${x.key}${x.name ? ' (' + x.name + ')' : ''}</option>`)
       .join('');
 
+    // Build photo grid with avatar/star buttons
+    const photoThumbs = (c.photoWebPaths || []).map(wp => {
+      const isAvatar = c.avatar === wp;
+      const isFeatured = (c.featuredPhotos || []).includes(wp);
+      const wrapCls = 'photo-thumb-wrap' + (isAvatar ? ' is-avatar' : '') + (isFeatured ? ' is-featured' : '');
+      const safeWp = wp.replace(/'/g, "\\\\'");
+      return `
+        <div class="${wrapCls}">
+          <img src="${wp}" loading="lazy" onclick="event.stopPropagation(); openModal('${wp}', [])">
+          <div class="photo-overlay-btns">
+            <button class="avatar-btn${isAvatar ? ' active' : ''}" title="Set as avatar" onclick="event.stopPropagation(); setAvatar('${c.key}', '${safeWp}')">&#x1F464;</button>
+            <button class="star-btn${isFeatured ? ' active' : ''}" title="Toggle featured" onclick="event.stopPropagation(); toggleFeatured('${c.key}', '${safeWp}')">&#x2605;</button>
+          </div>
+        </div>`;
+    }).join('');
+
     return `
       <div class="${cls}" id="cluster-${c.key}" ${mergeClick}>
         <div class="cluster-header">
@@ -469,6 +516,7 @@ function renderClusters() {
           </select>
           <button class="btn" onclick="inlineMerge('${c.key}', document.getElementById('mergeto-${c.key}').value)">Merge</button>
         </div>
+        <div class="cluster-photos">${photoThumbs}</div>
       </div>`;
   }).join('');
 }
@@ -481,10 +529,42 @@ function buildMapping() {
     else if (c.name) {
       const entry = { name: c.name };
       if (c.message) entry.message = c.message;
+      if (c.avatar) entry.avatar = c.avatar;
+      if (c.featuredPhotos && c.featuredPhotos.length > 0) entry.featuredPhotos = c.featuredPhotos;
       mapping[c.key] = entry;
     }
   });
   return mapping;
+}
+
+async function setAvatar(key, photoWebPath) {
+  const c = CLUSTERS.find(c => c.key === key);
+  if (!c) return;
+  c.avatar = (c.avatar === photoWebPath) ? null : photoWebPath;
+  renderClusters();
+  if (await persistMapping()) {
+    toast(c.avatar ? 'Avatar set' : 'Avatar cleared', 'success');
+  } else {
+    toast('Save failed!', 'error');
+  }
+}
+
+async function toggleFeatured(key, photoWebPath) {
+  const c = CLUSTERS.find(c => c.key === key);
+  if (!c) return;
+  if (!c.featuredPhotos) c.featuredPhotos = [];
+  const idx = c.featuredPhotos.indexOf(photoWebPath);
+  if (idx >= 0) {
+    c.featuredPhotos.splice(idx, 1);
+  } else {
+    c.featuredPhotos.push(photoWebPath);
+  }
+  renderClusters();
+  if (await persistMapping()) {
+    toast(idx >= 0 ? 'Removed from featured' : 'Added to featured', 'success');
+  } else {
+    toast('Save failed!', 'error');
+  }
 }
 
 async function persistMapping() {
