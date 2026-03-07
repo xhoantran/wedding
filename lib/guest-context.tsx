@@ -24,7 +24,7 @@ export function useGuest() {
 
 export function getGuestDisplayName(guest: GuestData, _locale: Locale): string {
   if (guest.vnTitle) {
-    return guest.vnTitle;
+    return `${guest.vnTitle} ${guest.names.join(" & ")}`;
   }
   return guest.names.join(" & ");
 }
