@@ -46,6 +46,16 @@ CREATE TABLE photos (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Non-photo guests (managed via admin dashboard)
+CREATE TABLE guests (
+  id TEXT PRIMARY KEY,
+  names TEXT[] NOT NULL,
+  vn_title TEXT DEFAULT '',
+  avatar TEXT DEFAULT '',
+  message TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Admin notes per guest (upsert on guest_id)
 CREATE TABLE guest_notes (
   guest_id TEXT PRIMARY KEY,

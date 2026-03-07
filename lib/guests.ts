@@ -3,24 +3,56 @@ import "server-only";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { GuestData, GuestsMap } from "./types";
+import { createClient } from "@supabase/supabase-js";
 
-function loadGuests(): GuestsMap {
-  const filePath = join(process.cwd(), "data", "guests.json");
-  const raw = readFileSync(filePath, "utf-8");
-  return JSON.parse(raw) as GuestsMap;
+// Module-level cache for JSON guests
+let jsonGuestsCache: GuestsMap | null = null;
+
+function loadJsonGuests(): GuestsMap {
+  if (!jsonGuestsCache) {
+    const filePath = join(process.cwd(), "data", "guests.json");
+    const raw = readFileSync(filePath, "utf-8");
+    jsonGuestsCache = JSON.parse(raw) as GuestsMap;
+  }
+  return jsonGuestsCache;
 }
 
-export function getGuest(id: string): GuestData | null {
-  const guests = loadGuests();
-  return guests[id] ?? null;
+export async function getGuest(id: string): Promise<GuestData | null> {
+  // Check JSON (photo guests) first
+  const jsonGuests = loadJsonGuests();
+  if (jsonGuests[id]) return jsonGuests[id];
+
+  // Fallback to Supabase (non-photo guests)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+  );
+  const { data, error } = await supabase
+    .from("guests")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !data) return null;
+
+  return {
+    id: data.id,
+    names: data.names,
+    vnTitle: data.vn_title || undefined,
+    avatar: data.avatar || "",
+    featuredPhotos: [],
+    photos: [],
+    message: data.message || undefined,
+  };
 }
 
 export function getGuestPhotosSet(id: string): Set<string> {
-  const guest = getGuest(id);
+  const jsonGuests = loadJsonGuests();
+  const guest = jsonGuests[id];
   if (!guest) return new Set();
   return new Set(guest.photos);
 }
 
-export function getAllGuestIds(): string[] {
-  return Object.values(loadGuests()).map((g) => g.id);
+export function getAllJsonGuests(): GuestsMap {
+  return loadJsonGuests();
 }

@@ -9,7 +9,7 @@ export default async function InvitePage({
 }) {
   const { locale, id } = await params;
   const loc: Locale = locale === "en" ? "en" : "vi";
-  const guest = getGuest(id);
+  const guest = await getGuest(id);
   const photos = guest?.photos ?? [];
 
   return (

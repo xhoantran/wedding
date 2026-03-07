@@ -4,9 +4,16 @@ import { createClient } from "@supabase/supabase-js";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { GuestsMap } from "@/lib/types";
+import { randomUUID } from "crypto";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+
+function loadJsonGuests(): GuestsMap {
+  const filePath = join(process.cwd(), "data", "guests.json");
+  const raw = readFileSync(filePath, "utf-8");
+  return JSON.parse(raw) as GuestsMap;
+}
 
 export async function fetchTableData(table: string) {
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -26,7 +33,8 @@ export interface GuestRow {
   id: string;
   names: string;
   vnTitle: string;
-  photos: number;
+  hasPhotos: boolean;
+  photoCount: number;
   rsvpStatus: string;
   rsvpGuests: number;
   rsvpMeal: string;
@@ -36,15 +44,15 @@ export interface GuestRow {
 }
 
 export async function fetchGuestList(): Promise<GuestRow[]> {
-  const filePath = join(process.cwd(), "data", "guests.json");
-  const raw = readFileSync(filePath, "utf-8");
-  const guests = JSON.parse(raw) as GuestsMap;
+  const jsonGuests = loadJsonGuests();
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const [{ data: rsvps }, { data: notes }] = await Promise.all([
-    supabase.from("rsvps").select("*"),
-    supabase.from("guest_notes").select("*"),
-  ]);
+  const [{ data: rsvps }, { data: notes }, { data: dbGuests }] =
+    await Promise.all([
+      supabase.from("rsvps").select("*"),
+      supabase.from("guest_notes").select("*"),
+      supabase.from("guests").select("*"),
+    ]);
 
   const rsvpMap = new Map(
     (rsvps ?? []).map((r: Record<string, unknown>) => [
@@ -59,21 +67,47 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
     ])
   );
 
-  return Object.values(guests).map((g) => {
+  const rows: GuestRow[] = [];
+
+  // Photo guests from JSON
+  for (const g of Object.values(jsonGuests)) {
     const rsvp = rsvpMap.get(g.id) as Record<string, unknown> | undefined;
-    return {
+    rows.push({
       id: g.id,
       names: g.names.join(" & "),
       vnTitle: g.vnTitle ?? "",
-      photos: g.photos.length,
+      hasPhotos: true,
+      photoCount: g.photos.length,
       rsvpStatus: rsvp ? String(rsvp.attendance) : "pending",
       rsvpGuests: rsvp ? Number(rsvp.guests) || 0 : 0,
       rsvpMeal: rsvp ? String(rsvp.meal ?? "") : "",
       rsvpMessage: rsvp ? String(rsvp.message ?? "") : "",
       rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
       note: noteMap.get(g.id) ?? "",
-    };
-  });
+    });
+  }
+
+  // Non-photo guests from Supabase
+  for (const g of dbGuests ?? []) {
+    // Skip if already in JSON (shouldn't happen, but safety check)
+    if (jsonGuests[g.id]) continue;
+    const rsvp = rsvpMap.get(g.id) as Record<string, unknown> | undefined;
+    rows.push({
+      id: g.id,
+      names: (g.names as string[]).join(" & "),
+      vnTitle: g.vn_title ?? "",
+      hasPhotos: false,
+      photoCount: 0,
+      rsvpStatus: rsvp ? String(rsvp.attendance) : "pending",
+      rsvpGuests: rsvp ? Number(rsvp.guests) || 0 : 0,
+      rsvpMeal: rsvp ? String(rsvp.meal ?? "") : "",
+      rsvpMessage: rsvp ? String(rsvp.message ?? "") : "",
+      rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
+      note: noteMap.get(g.id) ?? "",
+    });
+  }
+
+  return rows;
 }
 
 export async function saveGuestNote(guestId: string, note: string) {
@@ -87,6 +121,46 @@ export async function saveGuestNote(guestId: string, note: string) {
     return false;
   }
   return true;
+}
+
+export async function createGuest(
+  names: string[],
+  vnTitle?: string,
+  message?: string
+): Promise<{ id: string } | { error: string }> {
+  const id = randomUUID();
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { error } = await supabase.from("guests").insert({
+    id,
+    names,
+    vn_title: vnTitle || "",
+    message: message || "",
+  });
+
+  if (error) {
+    console.error("Error creating guest:", error);
+    return { error: error.message };
+  }
+  return { id };
+}
+
+export async function deleteGuest(
+  id: string
+): Promise<{ success: boolean; error?: string }> {
+  // Safety: only allow deleting non-photo guests (Supabase guests)
+  const jsonGuests = loadJsonGuests();
+  if (jsonGuests[id]) {
+    return { success: false, error: "Cannot delete photo guests" };
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  const { error } = await supabase.from("guests").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting guest:", error);
+    return { success: false, error: error.message };
+  }
+  return { success: true };
 }
 
 export async function fetchAllCounts() {
@@ -109,10 +183,12 @@ export async function fetchAllCounts() {
     })
   );
 
-  const filePath = join(process.cwd(), "data", "guests.json");
-  const raw = readFileSync(filePath, "utf-8");
-  const guests = JSON.parse(raw) as GuestsMap;
-  counts["guests"] = Object.keys(guests).length;
+  const jsonGuests = loadJsonGuests();
+  const { count: dbGuestCount } = await supabase
+    .from("guests")
+    .select("*", { count: "exact", head: true });
+
+  counts["guests"] = Object.keys(jsonGuests).length + (dbGuestCount ?? 0);
 
   return counts;
 }
