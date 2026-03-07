@@ -6,7 +6,7 @@ import { submitRsvp, RsvpState } from "@/app/[locale]/actions/rsvp";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import { useWeddingStore } from "@/lib/store";
-import { useGuest } from "@/lib/guest-context";
+import { useGuest, getGuestDisplayName } from "@/lib/guest-context";
 import SectionHeading from "./SectionHeading";
 import ScrollReveal from "./ScrollReveal";
 import MagneticButton from "./MagneticButton";
@@ -117,7 +117,7 @@ export default function Rsvp({ locale }: { locale: Locale }) {
                       type="text"
                       name="name"
                       placeholder={t.name}
-                      defaultValue={guest?.names.join(" & ") || ""}
+                      defaultValue={guest ? getGuestDisplayName(guest, locale) : ""}
                       required
                       className="w-full border-b border-rose/30 bg-transparent px-1 py-3 text-charcoal outline-none placeholder:text-stone/40"
                     />
