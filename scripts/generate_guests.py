@@ -4,6 +4,7 @@
 import json
 import re
 import unicodedata
+import uuid
 from pathlib import Path
 
 OUTPUT_DIR = Path(__file__).parent / "output"
@@ -163,6 +164,18 @@ def main():
         if slug in person_messages:
             entry["message"] = person_messages[slug]
         guests[slug] = entry
+
+    # Load existing guests.json to reuse stable IDs
+    existing_ids: dict[str, str] = {}
+    if GUESTS_FILE.exists():
+        with open(GUESTS_FILE) as f:
+            for key, data in json.load(f).items():
+                if "id" in data:
+                    existing_ids[key] = data["id"]
+
+    # Assign stable UUIDs (reuse existing, generate new for new guests)
+    for key, entry in guests.items():
+        entry["id"] = existing_ids.get(key, str(uuid.uuid4()))
 
     # Ensure output directory exists
     GUESTS_FILE.parent.mkdir(parents=True, exist_ok=True)

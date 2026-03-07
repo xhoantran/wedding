@@ -7,6 +7,7 @@ export interface GalleryImage {
 }
 
 export interface GuestData {
+  id: string;
   names: string[];
   vnTitle?: string;
   avatar: string;
