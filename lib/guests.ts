@@ -10,17 +10,21 @@ function loadGuests(): GuestsMap {
   return JSON.parse(raw) as GuestsMap;
 }
 
-export function getGuest(code: string): GuestData | null {
+export function getGuest(id: string): GuestData | null {
   const guests = loadGuests();
-  return guests[code] ?? null;
+  // Look up by UUID id field
+  for (const data of Object.values(guests)) {
+    if (data.id === id) return data;
+  }
+  return null;
 }
 
-export function getGuestPhotosSet(code: string): Set<string> {
-  const guest = getGuest(code);
+export function getGuestPhotosSet(id: string): Set<string> {
+  const guest = getGuest(id);
   if (!guest) return new Set();
   return new Set(guest.photos);
 }
 
-export function getAllGuestCodes(): string[] {
-  return Object.keys(loadGuests());
+export function getAllGuestIds(): string[] {
+  return Object.values(loadGuests()).map((g) => g.id);
 }
