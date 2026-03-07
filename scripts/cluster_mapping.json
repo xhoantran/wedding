@@ -193,7 +193,7 @@
     ]
   },
   "cluster_21": {
-    "name": "Na",
+    "name": "Nina",
     "vnTitle": "Bác",
     "featuredPhotos": [
       "/images/tea-ceremony/anh-film/000046400015.jpg",
@@ -549,12 +549,21 @@
   "cluster_99": null,
   "cluster_100": {
     "name": "Phát",
-    "vnTitle": "Anh"
+    "vnTitle": "Anh",
+    "featuredPhotos": [
+      "/images/tea-ceremony/khach/SEKUN0243.jpg"
+    ]
   },
   "cluster_101": {
-    "name": "Roxanne"
+    "name": "Roxanne",
+    "featuredPhotos": [
+      "/images/tea-ceremony/khach/SEKUN0847.jpg"
+    ]
   },
   "cluster_102": {
-    "name": "Kenny"
+    "name": "Kenny",
+    "featuredPhotos": [
+      "/images/tea-ceremony/khach/SEKUN0847.jpg"
+    ]
   }
 }
