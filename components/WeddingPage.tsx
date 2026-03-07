@@ -17,6 +17,7 @@ import WeddingDetails from "@/components/WeddingDetails";
 import RomanticQuote from "@/components/RomanticQuote";
 import FeaturedGuestSection from "@/components/FeaturedGuestSection";
 import Gallery from "@/components/Gallery";
+import CinematicBreak from "@/components/CinematicBreak";
 import Rsvp from "@/components/Rsvp";
 import TeamPoll from "@/components/TeamPoll";
 import GuestWishes from "@/components/GuestWishes";
@@ -83,6 +84,7 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
         <PhotoBreak />
         <FeaturedGuestSection locale={locale} />
         <RomanticQuote locale={locale} />
+        <CinematicBreak />
         <WeddingDetails locale={locale} showCeremony={guest?.ceremony} />
         <Gallery locale={locale} />
         <Rsvp locale={locale} />
