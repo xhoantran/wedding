@@ -211,6 +211,7 @@ function MosaicLayout({ photos, alt }: { photos: string[]; alt: string }) {
 /* ── Layout: 5+ photos — Hero + Grid ── */
 function HeroGridLayout({ photos, alt }: { photos: string[]; alt: string }) {
   const [hero, ...rest] = photos;
+  const isOdd = rest.length % 2 === 1;
   return (
     <div className="flex flex-col gap-0.5">
       {/* Hero */}
@@ -223,16 +224,19 @@ function HeroGridLayout({ photos, alt }: { photos: string[]; alt: string }) {
       />
       {/* Grid */}
       <div className="grid grid-cols-1 gap-0.5 md:grid-cols-2">
-        {rest.map((src, i) => (
-          <CinematicPhoto
-            key={src}
-            src={src}
-            alt={alt}
-            className="h-[50vh] md:h-[55vh]"
-            parallaxRange={i % 2 === 0 ? [-50, 50] : [-35, 35]}
-            kenburnsIndex={i + 1}
-          />
-        ))}
+        {rest.map((src, i) => {
+          const isLast = i === rest.length - 1;
+          return (
+            <CinematicPhoto
+              key={src}
+              src={src}
+              alt={alt}
+              className={`h-[50vh] md:h-[55vh] ${isLast && isOdd ? "md:col-span-2" : ""}`}
+              parallaxRange={i % 2 === 0 ? [-50, 50] : [-35, 35]}
+              kenburnsIndex={i + 1}
+            />
+          );
+        })}
       </div>
     </div>
   );
