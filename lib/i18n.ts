@@ -37,7 +37,7 @@ const translations = {
       title: "RSVP",
       subtitle: "We would be honored by your presence",
       name: "Full Name *",
-      email: "Email Address *",
+      email: "Email / Phone (optional)",
       attending: "Will you be attending? *",
       accept: "Joyfully Accept",
       decline: "Regretfully Decline",
@@ -175,7 +175,7 @@ const translations = {
       title: "Xác Nhận Tham Dự",
       subtitle: "Chúng tôi rất hân hạnh được đón tiếp quý khách",
       name: "Họ và Tên *",
-      email: "Địa chỉ Email *",
+      email: "Email / SĐT (không bắt buộc)",
       attending: "Quý khách có tham dự không? *",
       accept: "Trân Trọng Nhận Lời",
       decline: "Rất Tiếc Từ Chối",
@@ -260,8 +260,8 @@ const translations = {
     inviteFormalEm: {
       greeting: "Gửi {name},",
       welcomeMessage:
-        "Chúng em rất hân hạnh được đón tiếp {name}",
-      openInvitation: "Mời {name} mở thiệp mời",
+        "Chúng em rất hân hạnh được đón tiếp",
+      openInvitation: "Mời mở thiệp mời",
       yourPhotos: "Ảnh Của {name}",
       allPhotos: "Tất Cả Ảnh",
       featuredHeading: "Chúng em cảm ơn {name}",
@@ -271,8 +271,8 @@ const translations = {
     inviteFormalCon: {
       greeting: "Kính gửi {name},",
       welcomeMessage:
-        "Chúng con kính mời {name} đến chung vui",
-      openInvitation: "Kính mời {name} mở thiệp mời",
+        "Chúng con kính mời đến chung vui",
+      openInvitation: "Kính mời mở thiệp mời",
       yourPhotos: "Ảnh Của {name}",
       allPhotos: "Tất Cả Ảnh",
       featuredHeading: "Chúng con cảm ơn {name}",
@@ -300,10 +300,10 @@ const EM_TITLES = new Set(["Anh", "Chị"]);
 
 export function getInviteTranslations(
   locale: Locale,
-  opts?: { vnTitle?: string }
+  opts?: { vnTitle?: string[] }
 ): InviteTranslations {
   const t = translations[locale];
-  if (!opts?.vnTitle) return t.invite;
-  const firstWord = opts.vnTitle.split(/\s/)[0];
+  if (!opts?.vnTitle?.length) return t.invite;
+  const firstWord = opts.vnTitle[0].split(/\s/)[0];
   return EM_TITLES.has(firstWord) ? t.inviteFormalEm : t.inviteFormalCon;
 }

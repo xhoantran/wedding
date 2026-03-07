@@ -10,7 +10,9 @@ import {
   createGuest,
   deleteGuest,
   updateGuestCeremony,
+  fetchInviteGroups,
   GuestRow,
+  InviteGroupDisplay,
 } from "./actions";
 
 const supabase = createClient(
@@ -20,6 +22,7 @@ const supabase = createClient(
 
 const TABLES = [
   { key: "guests", label: "Guests" },
+  { key: "groups", label: "Groups" },
   { key: "guest_wishes", label: "Wishes" },
   { key: "poll_votes", label: "Poll Votes" },
   { key: "photos", label: "Photos" },
@@ -352,7 +355,20 @@ function GuestTable({ rows, onRefresh }: { rows: GuestRow[]; onRefresh: () => vo
                 className="border-b border-stone-100 last:border-0 hover:bg-stone-50/50"
               >
                 <td className="whitespace-nowrap px-4 py-2.5 font-medium text-stone-800">
-                  {row.names}
+                  <div className="flex items-center gap-2">
+                    {row.avatar ? (
+                      <img
+                        src={row.avatar}
+                        alt=""
+                        className="h-7 w-7 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-stone-200 text-[10px] font-semibold text-stone-500">
+                        {row.names.charAt(0)}
+                      </span>
+                    )}
+                    {row.names}
+                  </div>
                 </td>
                 <td className="px-4 py-2.5">
                   <div className="flex items-center gap-1">
@@ -449,6 +465,57 @@ function GuestTable({ rows, onRefresh }: { rows: GuestRow[]; onRefresh: () => vo
   );
 }
 
+function GroupsPanel({
+  groups,
+}: {
+  groups: InviteGroupDisplay[];
+}) {
+  return (
+    <div>
+      <p className="mb-4 text-xs text-stone-400">
+        Manage groups via <code className="rounded bg-stone-100 px-1.5 py-0.5 text-stone-500">scripts/invite_groups.json</code>
+      </p>
+
+      {groups.length === 0 ? (
+        <p className="py-12 text-center text-sm text-stone-400">No groups yet</p>
+      ) : (
+        <div className="space-y-3">
+          {groups.map((group, i) => (
+            <div
+              key={i}
+              className="rounded-lg border border-stone-200 bg-white p-4"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                  {group.memberDetails.map((m) => (
+                    <img
+                      key={m.id}
+                      src={m.avatar}
+                      alt=""
+                      className="h-9 w-9 rounded-full border-2 border-white object-cover"
+                    />
+                  ))}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-stone-800">
+                    {group.memberDetails
+                      .map((m) => m.names.join(" & "))
+                      .join(" + ")}
+                  </p>
+                  <div className="flex gap-2 text-xs text-stone-400">
+                    {group.vnTitle && <span>Title: {group.vnTitle}</span>}
+                    {group.message && <span>Msg: {group.message}</span>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function formatCell(value: unknown): string {
   if (value === null || value === undefined) return "-";
   if (typeof value === "boolean") return value ? "Yes" : "No";
@@ -463,6 +530,7 @@ function Dashboard() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [guestRows, setGuestRows] = useState<GuestRow[]>([]);
+  const [groups, setGroups] = useState<InviteGroupDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const [countsLoaded, setCountsLoaded] = useState(false);
 
@@ -475,6 +543,11 @@ function Dashboard() {
     });
   }
 
+  const loadGroups = async () => {
+    const g = await fetchInviteGroups();
+    setGroups(g);
+  };
+
   const switchTab = (tab: TableKey) => {
     if (tab === activeTab) return;
     setActiveTab(tab);
@@ -484,6 +557,8 @@ function Dashboard() {
         setGuestRows(data);
         setLoading(false);
       });
+    } else if (tab === "groups") {
+      loadGroups().then(() => setLoading(false));
     } else {
       fetchTableData(tab).then((data) => {
         setRows(data as Record<string, unknown>[]);
@@ -556,6 +631,8 @@ function Dashboard() {
             fetchGuestList().then(setGuestRows);
             fetchAllCounts().then(setCounts);
           }} />
+        ) : activeTab === "groups" ? (
+          <GroupsPanel groups={groups} />
         ) : (
           <GenericTable rows={rows} />
         )}

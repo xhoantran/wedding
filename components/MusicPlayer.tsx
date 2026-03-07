@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Locale } from "@/lib/types";
 
@@ -45,7 +45,10 @@ export default function MusicPlayer({ locale }: { locale: Locale }) {
   const [trackIndex, setTrackIndex] = useState(0);
 
    
-  const playlist = useMemo(() => shuffle(MUSIC[locale]), [locale]);
+  const [playlist, setPlaylist] = useState(() => MUSIC[locale]);
+  useEffect(() => {
+    setPlaylist(shuffle(MUSIC[locale]));
+  }, [locale]);
   const track = playlist[trackIndex];
 
   const wasPlayingRef = useRef(false);

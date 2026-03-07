@@ -24,7 +24,7 @@ export async function submitRsvp(
   const message = formData.get("message") as string;
   const inviteId = formData.get("inviteId") as string | null;
 
-  if (!name || !email || !attendance) {
+  if (!name || !attendance) {
     return { success: false, error: "Please fill in all required fields." };
   }
 

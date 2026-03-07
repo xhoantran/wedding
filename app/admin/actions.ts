@@ -33,6 +33,7 @@ export interface GuestRow {
   id: string;
   names: string;
   vnTitle: string;
+  avatar: string;
   hasPhotos: boolean;
   photoCount: number;
   rsvpStatus: string;
@@ -76,7 +77,8 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
     rows.push({
       id: g.id,
       names: g.names.join(" & "),
-      vnTitle: g.vnTitle ?? "",
+      vnTitle: (g.vnTitle ?? []).join(" & "),
+      avatar: (g.avatar ?? [])[0] ?? "",
       hasPhotos: true,
       photoCount: g.photos.length,
       rsvpStatus: rsvp ? String(rsvp.attendance) : "pending",
@@ -98,7 +100,8 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       id: g.id,
       names: (g.names as string[]).join(" & "),
       vnTitle: g.vn_title ?? "",
-      hasPhotos: false,
+      avatar: g.avatar ?? "",
+      hasPhotos: false,  // Supabase guests have string avatar
       photoCount: 0,
       rsvpStatus: rsvp ? String(rsvp.attendance) : "pending",
       rsvpGuests: rsvp ? Number(rsvp.guests) || 0 : 0,
@@ -180,6 +183,62 @@ export async function updateGuestCeremony(id: string, ceremony: boolean) {
     return false;
   }
   return true;
+}
+
+export interface PhotoGuestSummary {
+  id: string;
+  names: string[];
+  avatar: string;
+  photoCount: number;
+}
+
+export interface InviteGroup {
+  members: string[];
+  vnTitle?: string;
+  message?: string;
+}
+
+export interface InviteGroupDisplay extends InviteGroup {
+  memberDetails: PhotoGuestSummary[];
+}
+
+export async function fetchPhotoGuests(): Promise<PhotoGuestSummary[]> {
+  const jsonGuests = loadJsonGuests();
+  return Object.values(jsonGuests).map((g) => ({
+    id: g.id,
+    names: g.names,
+    avatar: (g.avatar ?? [])[0] ?? "",
+    photoCount: g.photos.length,
+  }));
+}
+
+function loadInviteGroups(): InviteGroup[] {
+  const filePath = join(process.cwd(), "scripts", "invite_groups.json");
+  try {
+    const raw = readFileSync(filePath, "utf-8");
+    return JSON.parse(raw) as InviteGroup[];
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchInviteGroups(): Promise<InviteGroupDisplay[]> {
+  const groups = loadInviteGroups();
+  const jsonGuests = loadJsonGuests();
+
+  const guestMap = new Map(
+    Object.values(jsonGuests).map((g) => [
+      g.id,
+      { id: g.id, names: g.names, avatar: (g.avatar ?? [])[0] ?? "", photoCount: g.photos.length },
+    ])
+  );
+
+  return groups.map((group) => ({
+    ...group,
+    memberDetails: group.members
+      .map((id) => guestMap.get(id))
+      .filter((g): g is PhotoGuestSummary => !!g),
+  }));
 }
 
 export async function fetchAllCounts() {

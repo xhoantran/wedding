@@ -9,8 +9,8 @@ export interface GalleryImage {
 export interface GuestData {
   id: string;
   names: string[];
-  vnTitle?: string;
-  avatar: string;
+  vnTitle?: string[];
+  avatar: string[];
   featuredPhotos: string[];
   photos: string[];
   message?: string;

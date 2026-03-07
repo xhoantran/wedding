@@ -11,7 +11,7 @@ export const WEDDING: WeddingInfo = {
   ceremonyVenue: "",
   ceremonyAddress: "761 Đường 23/10, Tây Nha Trang, Khánh Hòa, Việt Nam",
   receptionVenue: "InterContinental Nha Trang",
-  receptionAddress: "32-34 Trần Phú, phường, Nha Trang, Khánh Hòa, Việt Nam",
+  receptionAddress: "32-34 Trần Phú, Nha Trang, Khánh Hòa, Việt Nam",
   hashtag: "#HoanAndThy2027",
 };
 

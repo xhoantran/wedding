@@ -31,8 +31,8 @@ export default function Hero({ locale }: { locale: Locale }) {
       ref={ref}
       className="relative flex h-screen items-center justify-center overflow-hidden bg-black"
     >
-      {/* Background image with parallax */}
-      <motion.div className="absolute inset-0" style={{ y, scale }}>
+      {/* Background image with parallax — extra inset to prevent black gap on scroll */}
+      <motion.div className="absolute -inset-50" style={{ y, scale }}>
         {/* Gradient fallback — behind the image */}
         <div className="absolute inset-0 bg-linear-to-br from-champagne via-rose to-blush" />
         <Image

@@ -19,8 +19,10 @@ export default function Rsvp({ locale }: { locale: Locale }) {
     initialState
   );
   const [attendance, setAttendance] = useState<string>("");
+  const [extraGuests, setExtraGuests] = useState(0);
   const setHasRsvped = useWeddingStore((s) => s.setHasRsvped);
   const { guest, inviteId } = useGuest();
+  const baseCount = guest?.names.length ?? 1;
 
   useEffect(() => {
     if (state.success) setHasRsvped();
@@ -123,13 +125,12 @@ export default function Rsvp({ locale }: { locale: Locale }) {
                     />
                   </div>
 
-                  {/* Email */}
+                  {/* Email / Phone */}
                   <div className="input-underline">
                     <input
-                      type="email"
+                      type="text"
                       name="email"
                       placeholder={t.email}
-                      required
                       className="w-full border-b border-rose/30 bg-transparent px-1 py-3 text-charcoal outline-none placeholder:text-stone/40"
                     />
                   </div>
@@ -190,16 +191,39 @@ export default function Rsvp({ locale }: { locale: Locale }) {
                         }}
                         className="space-y-6 overflow-hidden"
                       >
-                        <div className="input-underline">
-                          <input
-                            type="number"
-                            name="guests"
-                            min="1"
-                            max="5"
-                            defaultValue="1"
-                            placeholder={t.guests}
-                            className="w-full border-b border-rose/30 bg-transparent px-1 py-3 text-charcoal outline-none placeholder:text-stone/40"
-                          />
+                        <div>
+                          <input type="hidden" name="guests" value={baseCount + extraGuests} />
+                          <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-stone">
+                            {t.guests}
+                          </p>
+                          <div className="flex items-center justify-between rounded-lg border border-rose/30 px-4 py-3">
+                            <span className="text-sm text-charcoal">
+                              {guest
+                                ? `${getGuestDisplayName(guest, locale)}${extraGuests > 0 ? ` + ${extraGuests}` : ""}`
+                                : `${baseCount + extraGuests}`}
+                            </span>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                onClick={() => setExtraGuests((v) => Math.max(0, v - 1))}
+                                disabled={extraGuests === 0}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-rose/30 text-stone transition-colors hover:border-gold hover:text-gold disabled:opacity-30"
+                              >
+                                −
+                              </button>
+                              <span className="w-5 text-center text-sm font-medium text-charcoal">
+                                {baseCount + extraGuests}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setExtraGuests((v) => Math.min(4, v + 1))}
+                                disabled={extraGuests >= 4}
+                                className="flex h-7 w-7 items-center justify-center rounded-full border border-rose/30 text-stone transition-colors hover:border-gold hover:text-gold disabled:opacity-30"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
                         </div>
 
                         <div className="input-underline">
@@ -210,7 +234,6 @@ export default function Rsvp({ locale }: { locale: Locale }) {
                             <option value="">{t.meal}</option>
                             <option value="standard">{t.mealStandard}</option>
                             <option value="vegetarian">{t.mealVegetarian}</option>
-                            <option value="vegan">{t.mealVegan}</option>
                             <option value="other">{t.mealOther}</option>
                           </select>
                         </div>

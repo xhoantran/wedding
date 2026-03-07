@@ -90,6 +90,12 @@ def main():
 
     persons = build_person_data(clusters, mapping)
 
+    # Load existing guests.json to preserve manually-set fields (e.g. ceremony)
+    old_guests: dict = {}
+    if GUESTS_FILE.exists():
+        with open(GUESTS_FILE) as f:
+            old_guests = json.load(f)
+
     # Build slug -> cluster_key lookup for group member resolution
     slug_to_keys: dict[str, list[str]] = {}
     for ck, p in persons.items():
@@ -101,73 +107,96 @@ def main():
         with open(GROUPS_FILE) as f:
             groups = json.load(f)
 
-    grouped_keys: set = set()
     guests: dict = {}
 
-    # Process explicit groups (couples)
+    # Build id -> cluster_key lookup for UUID-based group members
+    id_to_keys: dict[str, list[str]] = {}
+    for ck, p in persons.items():
+        id_to_keys.setdefault(p["id"], []).append(ck)
+
+    # Process explicit groups (couples) — creates combined group entries
+    # Individual members also keep their own entries (added in the solo loop below)
     for group in groups:
-        members = group["members"]  # list of person slugs
-        code = group.get("code") or "-".join(members)
+        members = group["members"]  # list of person slugs or UUIDs
 
         names = []
-        avatar = None
+        avatars = []
         featured_photos = []
         all_photos: set = set()
+        member_vn_titles: list[str] = []
+        member_messages: list[str] = []
 
-        for slug in members:
-            keys = slug_to_keys.get(slug, [])
+        for member in members:
+            # Try UUID lookup first, then slug lookup
+            keys = id_to_keys.get(member) or slug_to_keys.get(member, [])
             if not keys:
-                print(f"Warning: group member '{slug}' not found, skipping")
+                print(f"Warning: group member '{member}' not found, skipping")
                 continue
             for ck in keys:
                 p = persons[ck]
                 names.append(p["name"])
-                if avatar is None:
-                    avatar = p["avatar"]
+                avatars.append(p["avatar"])
                 featured_photos.extend(p["featuredPhotos"])
                 all_photos.update(p["photos"])
-                grouped_keys.add(ck)
+                # Collect individual vnTitle/message for inheritance
+                if p.get("vnTitle"):
+                    member_vn_titles.append(p["vnTitle"])
+                m_info = mapping.get(ck)
+                if m_info and m_info.get("message"):
+                    member_messages.append(m_info["message"])
 
         if names:
-            # Use group id, or first member's id, or generate new
-            member_ids = [persons[ck]["id"] for slug in members for ck in slug_to_keys.get(slug, []) if ck in persons]
-            group_id = group.get("id") or (member_ids[0] if member_ids else str(uuid.uuid4()))
+            # Generate stable group ID from sorted member UUIDs
+            member_ids = sorted(
+                persons[ck]["id"]
+                for m in members
+                for ck in (id_to_keys.get(m) or slug_to_keys.get(m, []))
+                if ck in persons
+            )
+            group_id = group.get("id") or str(
+                uuid.uuid5(uuid.NAMESPACE_URL, "+".join(member_ids))
+            )
 
             entry = {
                 "id": group_id,
                 "names": names,
-                "avatar": avatar,
+                "avatar": avatars,
                 "featuredPhotos": sorted(set(featured_photos)),
                 "photos": sorted(all_photos),
             }
-            if group.get("vnTitle"):
-                entry["vnTitle"] = group["vnTitle"]
-            if group.get("message"):
-                entry["message"] = group["message"]
+            # Inherit vnTitle as array: group-level (split by &) > member titles
+            group_vn = group.get("vnTitle")
+            if group_vn:
+                entry["vnTitle"] = [t.strip() for t in group_vn.split("&")]
+            elif member_vn_titles:
+                entry["vnTitle"] = member_vn_titles
+            # Inherit message: group-level > first member's
+            message = group.get("message") or (member_messages[0] if member_messages else "")
+            if message:
+                entry["message"] = message
+            entry["ceremony"] = True
             guests[group_id] = entry
 
-    # Add remaining solo guests
-    # Build message lookup from mapping
+    # Add ALL persons as individual entries (including grouped members)
     person_messages: dict[str, str] = {}
     for cluster_key, info in mapping.items():
         if info and info.get("message"):
             person_messages[cluster_key] = info["message"]
 
     for ck, p in persons.items():
-        if ck in grouped_keys:
-            continue
         guest_id = p["id"]
         entry = {
             "id": guest_id,
             "names": [p["name"]],
-            "avatar": p["avatar"],
+            "avatar": [p["avatar"]],
             "featuredPhotos": p["featuredPhotos"],
             "photos": p["photos"],
         }
         if p.get("vnTitle"):
-            entry["vnTitle"] = p["vnTitle"]
+            entry["vnTitle"] = [p["vnTitle"]]
         if ck in person_messages:
             entry["message"] = person_messages[ck]
+        entry["ceremony"] = True
         guests[guest_id] = entry
 
     # Ensure output directory exists

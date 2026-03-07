@@ -23,8 +23,13 @@ export function useGuest() {
 }
 
 export function getGuestDisplayName(guest: GuestData, _locale: Locale): string {
-  if (guest.vnTitle) {
-    return `${guest.vnTitle} ${guest.names.join(" & ")}`;
+  if (guest.vnTitle?.length) {
+    return guest.names
+      .map((name, i) => {
+        const title = guest.vnTitle?.[i];
+        return title ? `${title} ${name}` : name;
+      })
+      .join(" & ");
   }
   return guest.names.join(" & ");
 }

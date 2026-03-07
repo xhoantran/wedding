@@ -38,8 +38,8 @@ export async function getGuest(id: string): Promise<GuestData | null> {
   return {
     id: data.id,
     names: data.names,
-    vnTitle: data.vn_title || undefined,
-    avatar: data.avatar || "",
+    vnTitle: data.vn_title ? [data.vn_title] : undefined,
+    avatar: data.avatar ? [data.avatar] : [],
     featuredPhotos: [],
     photos: [],
     message: data.message || undefined,

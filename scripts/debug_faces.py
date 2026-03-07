@@ -135,6 +135,94 @@ def build_clusters_data():
     return result
 
 
+def build_groups_data():
+    """Load invite groups and resolve member details from cluster mapping."""
+    groups = []
+    if GROUPS_FILE.exists():
+        with open(GROUPS_FILE) as f:
+            groups = json.load(f)
+
+    mapping = {}
+    if MAPPING_FILE.exists():
+        with open(MAPPING_FILE) as f:
+            mapping = json.load(f)
+
+    # Build UUID -> {id, name, avatar} lookup from assigned clusters
+    id_lookup: dict[str, dict] = {}
+    for _key, info in mapping.items():
+        if info is None:
+            continue
+        pid = info.get("id", "")
+        if pid:
+            id_lookup[pid] = {
+                "id": pid,
+                "name": info.get("name", ""),
+                "avatar": info.get("avatar", ""),
+            }
+
+    resolved = []
+    for group in groups:
+        members_detail = []
+        for mid in group.get("members", []):
+            detail = id_lookup.get(mid)
+            if detail:
+                members_detail.append(detail)
+            else:
+                members_detail.append({"id": mid, "name": mid[:8] + "…", "avatar": ""})
+        resolved.append({
+            "members": group.get("members", []),
+            "memberDetails": members_detail,
+            "vnTitle": group.get("vnTitle", ""),
+            "message": group.get("message", ""),
+        })
+    return resolved
+
+
+def build_assigned_clusters_list():
+    """Build list of assigned clusters with id/name/avatar for the groups UI."""
+    mapping = {}
+    if MAPPING_FILE.exists():
+        with open(MAPPING_FILE) as f:
+            mapping = json.load(f)
+
+    clusters_raw = {}
+    if CLUSTERS_RAW_FILE.exists():
+        with open(CLUSTERS_RAW_FILE) as f:
+            clusters_raw = json.load(f)
+
+    result = []
+    for key, info in mapping.items():
+        if info is None:
+            continue
+        pid = info.get("id", "")
+        if not pid:
+            continue
+
+        # Get avatar: use explicit avatar or pick largest face
+        avatar = info.get("avatar", "")
+        if not avatar:
+            faces = clusters_raw.get(key, [])
+            if faces:
+                best = max(faces, key=lambda f: _face_area(f["location"]))
+                source_dir = best.get("source_dir", "")
+                prefix = DIR_TO_WEB_PATH.get(source_dir, "/images/gallery")
+                avatar = f"{prefix}/{best['photo']}"
+
+        result.append({
+            "id": pid,
+            "name": info.get("name", ""),
+            "avatar": avatar,
+        })
+
+    result.sort(key=lambda c: c["name"].lower())
+    return result
+
+
+def _face_area(location: list[int]) -> int:
+    top, right, bottom, left = location
+    return (bottom - top) * (right - left)
+
+
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -234,6 +322,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   .modal .crops { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
   .modal .crops img { width: 100px; height: 100px; object-fit: cover; border-radius: 6px; border: 2px solid #444; }
 
+  /* Groups */
+  .group-card { background: #2a2a2a; border-radius: 8px; padding: 16px; border: 2px solid #333; display: flex; align-items: center; gap: 16px; }
+  .group-card .group-avatars { display: flex; flex-shrink: 0; }
+  .group-card .group-avatars img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #1a1a1a; margin-left: -10px; }
+  .group-card .group-avatars img:first-child { margin-left: 0; }
+  .group-card .group-info { flex: 1; min-width: 0; }
+  .group-card .group-names { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .group-card .group-fields { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .group-card .group-fields input { padding: 4px 10px; border: 1px solid #444; background: #1a1a1a; color: #eee; border-radius: 4px; font-size: 12px; width: 200px; }
+  .group-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .member-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .member-card { display: flex; align-items: center; gap: 8px; padding: 8px; background: #2a2a2a; border: 2px solid #444; border-radius: 8px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+  .member-card:hover { border-color: #666; }
+  .member-card.selected { border-color: #4a7c59; background: #2a3a2e; }
+  .member-card.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+  .member-card img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .member-card .member-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .member-card .member-check { margin-left: auto; color: #4a7c59; font-size: 16px; flex-shrink: 0; }
+
   /* Merge bar */
   .merge-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #2a2a2a; border-top: 2px solid #f59e0b; padding: 12px 20px; display: none; z-index: 50; align-items: center; gap: 12px; }
   .merge-bar.show { display: flex; }
@@ -245,6 +352,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <div class="tabs">
   <div class="tab active" data-tab="photos">Photos</div>
   <div class="tab" data-tab="clusters">Clusters</div>
+  <div class="tab" data-tab="groups">Groups</div>
 </div>
 
 <!-- PHOTOS TAB -->
@@ -278,6 +386,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <button class="btn save" onclick="saveMapping()">Save All</button>
   </div>
   <div class="cluster-list" id="cluster-list"></div>
+</div>
+
+<!-- GROUPS TAB -->
+<div class="tab-content" id="tab-groups">
+  <div class="stats" id="group-stats"></div>
+  <div id="group-list" class="group-list"></div>
+  <h3 style="margin: 16px 0 8px; font-size: 15px;">Create Group</h3>
+  <p style="font-size: 12px; color: #888; margin-bottom: 10px;">Select 2 or more assigned guests to group into a single invite:</p>
+  <div id="member-grid" class="member-grid"></div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <input type="text" class="search" id="group-vntitle" placeholder="VN Title (optional)" style="width:200px;">
+    <input type="text" class="search" id="group-message" placeholder="Message (optional)" style="width:300px;">
+    <button class="btn save" id="create-group-btn" onclick="createGroup()">Create Group</button>
+  </div>
 </div>
 
 <!-- Merge bar -->
@@ -808,9 +930,161 @@ function toast(msg, type) {
   setTimeout(() => el.className = 'toast', 2000);
 }
 
+// ---- Groups Tab ----
+let GROUPS = __GROUPS_JSON__;
+const ASSIGNED_CLUSTERS = __ASSIGNED_CLUSTERS_JSON__;
+let groupSelected = new Set();
+let groupSaveTimeout = null;
+
+function renderGroups() {
+  const list = document.getElementById('group-list');
+  const grid = document.getElementById('member-grid');
+
+  const groupedIds = new Set(GROUPS.flatMap(g => g.members));
+  const totalMembers = groupedIds.size;
+  document.getElementById('group-stats').textContent =
+    `${GROUPS.length} groups | ${totalMembers} grouped members | ${ASSIGNED_CLUSTERS.length} assigned guests total`;
+
+  // Existing groups
+  list.innerHTML = GROUPS.length === 0
+    ? '<p style="color:#888;font-size:13px;">No groups yet. Select guests below to create one.</p>'
+    : GROUPS.map((g, i) => {
+      const avatars = g.memberDetails.map(m =>
+        m.avatar ? `<img src="${m.avatar}" title="${m.name}">` : ''
+      ).join('');
+      const names = g.memberDetails.map(m => m.name).join(' & ');
+      const vnVal = (g.vnTitle || '').replace(/"/g, '&quot;');
+      const msgVal = (g.message || '').replace(/"/g, '&quot;');
+      return `
+        <div class="group-card">
+          <div class="group-avatars">${avatars}</div>
+          <div class="group-info">
+            <div class="group-names">${names}</div>
+            <div class="group-fields">
+              <input type="text" value="${vnVal}" placeholder="VN Title..." onchange="updateGroupField(${i}, 'vnTitle', this.value)">
+              <input type="text" value="${msgVal}" placeholder="Message..." onchange="updateGroupField(${i}, 'message', this.value)" style="width:300px">
+            </div>
+          </div>
+          <button class="btn danger" onclick="deleteGroup(${i})" style="flex-shrink:0">Delete</button>
+        </div>`;
+    }).join('');
+
+  // Member selection grid
+  grid.innerHTML = ASSIGNED_CLUSTERS.map(c => {
+    const isGrouped = groupedIds.has(c.id);
+    const isSelected = groupSelected.has(c.id);
+    let cls = 'member-card';
+    if (isGrouped) cls += ' disabled';
+    else if (isSelected) cls += ' selected';
+    const avatarHtml = c.avatar
+      ? `<img src="${c.avatar}">`
+      : `<span style="width:36px;height:36px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${c.name.charAt(0)}</span>`;
+    const check = isSelected ? '<span class="member-check">&#10003;</span>' : '';
+    return `
+      <div class="${cls}" onclick="toggleGroupMember('${c.id}')">
+        ${avatarHtml}
+        <span class="member-name">${c.name}</span>
+        ${check}
+      </div>`;
+  }).join('');
+
+  // Update create button state
+  const btn = document.getElementById('create-group-btn');
+  btn.textContent = groupSelected.size >= 2 ? `Create Group (${groupSelected.size})` : 'Create Group';
+  btn.disabled = groupSelected.size < 2;
+}
+
+function toggleGroupMember(id) {
+  if (groupSelected.has(id)) groupSelected.delete(id);
+  else groupSelected.add(id);
+  renderGroups();
+}
+
+async function persistGroups(groups) {
+  const resp = await fetch('/api/save-groups', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ groups }),
+  });
+  return resp.ok;
+}
+
+async function createGroup() {
+  if (groupSelected.size < 2) { toast('Select at least 2 guests', 'error'); return; }
+
+  const members = [...groupSelected];
+  const vnTitle = document.getElementById('group-vntitle').value.trim();
+  const message = document.getElementById('group-message').value.trim();
+
+  const newGroup = { members };
+  if (vnTitle) newGroup.vnTitle = vnTitle;
+  if (message) newGroup.message = message;
+
+  // Resolve member details from ASSIGNED_CLUSTERS
+  const lookup = Object.fromEntries(ASSIGNED_CLUSTERS.map(c => [c.id, c]));
+  newGroup.memberDetails = members.map(id => lookup[id] || { id, name: id.slice(0, 8) + '…', avatar: '' });
+
+  const allGroups = [...GROUPS, newGroup];
+  // Build clean version for saving (no memberDetails)
+  const saveGroups = allGroups.map(g => {
+    const entry = { members: g.members };
+    if (g.vnTitle) entry.vnTitle = g.vnTitle;
+    if (g.message) entry.message = g.message;
+    return entry;
+  });
+
+  if (await persistGroups(saveGroups)) {
+    GROUPS = allGroups;
+    groupSelected.clear();
+    document.getElementById('group-vntitle').value = '';
+    document.getElementById('group-message').value = '';
+    renderGroups();
+    toast('Group created', 'success');
+  } else {
+    toast('Save failed!', 'error');
+  }
+}
+
+async function deleteGroup(index) {
+  if (!confirm('Delete this group?')) return;
+  GROUPS.splice(index, 1);
+  const saveGroups = GROUPS.map(g => {
+    const entry = { members: g.members };
+    if (g.vnTitle) entry.vnTitle = g.vnTitle;
+    if (g.message) entry.message = g.message;
+    return entry;
+  });
+  if (await persistGroups(saveGroups)) {
+    renderGroups();
+    toast('Group deleted', 'success');
+  } else {
+    toast('Delete failed!', 'error');
+  }
+}
+
+function updateGroupField(index, field, value) {
+  GROUPS[index][field] = value;
+  // Debounce save
+  if (groupSaveTimeout) clearTimeout(groupSaveTimeout);
+  groupSaveTimeout = setTimeout(async () => {
+    const saveGroups = GROUPS.map(g => {
+      const entry = { members: g.members };
+      if (g.vnTitle) entry.vnTitle = g.vnTitle;
+      if (g.message) entry.message = g.message;
+      return entry;
+    });
+    if (await persistGroups(saveGroups)) {
+      toast('Group updated', 'success');
+    } else {
+      toast('Save failed!', 'error');
+    }
+  }, 600);
+}
+
 // ---- Init ----
 renderPhotos();
 renderClusters();
+renderGroups();
 </script>
 </body>
 </html>"""
@@ -829,10 +1103,16 @@ class DebugHandler(SimpleHTTPRequestHandler):
             # Re-read from disk on every page load so data is always fresh
             photos = build_photos_data()
             clusters = build_clusters_data()
+            groups = build_groups_data()
+            assigned_clusters = build_assigned_clusters_list()
             html = HTML_TEMPLATE.replace(
                 "__PHOTOS_JSON__", json.dumps(photos)
             ).replace(
                 "__CLUSTERS_JSON__", json.dumps(clusters)
+            ).replace(
+                "__GROUPS_JSON__", json.dumps(groups)
+            ).replace(
+                "__ASSIGNED_CLUSTERS_JSON__", json.dumps(assigned_clusters)
             )
             self.send_response(200)
             self.send_header("Content-Type", "text/html")
@@ -976,6 +1256,36 @@ class DebugHandler(SimpleHTTPRequestHandler):
                 json.dump(clusters_raw, f, indent=2)
 
             print(f"Added noise face {crop_id} to {target_key}")
+            self._json_response({"ok": True})
+            return
+
+        if path == "/api/save-groups":
+            groups = body.get("groups", [])
+            # Validate no duplicate members
+            seen: set[str] = set()
+            for group in groups:
+                for member in group.get("members", []):
+                    if member in seen:
+                        self._json_response(
+                            {"error": f"Duplicate member: {member}"}, 400
+                        )
+                        return
+                    seen.add(member)
+
+            # Clean up: only save members, vnTitle, message
+            clean = []
+            for group in groups:
+                entry: dict = {"members": group["members"]}
+                if group.get("vnTitle"):
+                    entry["vnTitle"] = group["vnTitle"]
+                if group.get("message"):
+                    entry["message"] = group["message"]
+                clean.append(entry)
+
+            with open(GROUPS_FILE, "w") as f:
+                json.dump(clean, f, indent=2, ensure_ascii=False)
+
+            print(f"Saved {len(clean)} invite groups")
             self._json_response({"ok": True})
             return
 
