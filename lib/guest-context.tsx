@@ -22,8 +22,8 @@ export function useGuest() {
   return useContext(GuestContext);
 }
 
-export function getGuestDisplayName(guest: GuestData, locale: Locale): string {
-  if (locale === "vi" && guest.vnTitle) {
+export function getGuestDisplayName(guest: GuestData, _locale: Locale): string {
+  if (guest.vnTitle) {
     return guest.vnTitle;
   }
   return guest.names.join(" & ");
