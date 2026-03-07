@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useGuest, getGuestDisplayName } from "@/lib/guest-context";
-import { getTranslations } from "@/lib/i18n";
+import { getInviteTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import TextReveal from "@/components/TextReveal";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -249,7 +249,7 @@ function PhotoLayout({ photos, alt }: { photos: string[]; alt: string }) {
 
 export default function FeaturedGuestSection({ locale }: { locale: Locale }) {
   const { guest } = useGuest();
-  const t = getTranslations(locale).invite;
+  const t = getInviteTranslations(locale, { vnTitle: guest?.vnTitle });
 
   if (!guest || guest.featuredPhotos.length === 0) return null;
 

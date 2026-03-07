@@ -125,6 +125,7 @@ def build_clusters_data():
             "name": m["name"] if m else None,
             "message": m.get("message", "") if m else "",
             "vnTitle": m.get("vnTitle", "") if m else "",
+            "id": m.get("id", "") if m else "",
             "skipped": m is None and key in mapping,
             "avatar": m.get("avatar") if m else None,
             "featuredPhotos": m.get("featuredPhotos", []) if m else [],
@@ -530,7 +531,7 @@ function buildMapping() {
     if (c.num === -1) return;
     if (c.skipped) { mapping[c.key] = null; }
     else if (c.name) {
-      const entry = { name: c.name };
+      const entry = { name: c.name, id: c.id };
       if (c.vnTitle) entry.vnTitle = c.vnTitle;
       if (c.message) entry.message = c.message;
       if (c.avatar) entry.avatar = c.avatar;
@@ -586,7 +587,10 @@ async function assignCluster(key) {
   const vnTitle = document.getElementById('vntitle-' + key).value.trim();
   const message = document.getElementById('msg-' + key).value.trim();
   const c = CLUSTERS.find(c => c.key === key);
-  if (c) { c.name = name; c.vnTitle = vnTitle; c.message = message; c.skipped = false; }
+  if (c) {
+    c.name = name; c.vnTitle = vnTitle; c.message = message; c.skipped = false;
+    if (!c.id) c.id = crypto.randomUUID();
+  }
   renderClusters();
   if (await persistMapping()) {
     toast('Assigned: ' + name, 'success');

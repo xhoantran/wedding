@@ -51,7 +51,7 @@ def _face_area(location: list[int]) -> int:
 
 
 def build_person_data(clusters, mapping) -> dict:
-    """Build per-person data: {slug: {name, avatar, featuredPhotos, photos}}."""
+    """Build per-person data keyed by cluster_key."""
     persons: dict = {}
 
     for cluster_key, info in mapping.items():
@@ -63,29 +63,20 @@ def build_person_data(clusters, mapping) -> dict:
             print(f"Warning: {cluster_key} has no faces, skipping")
             continue
 
-        slug = slugify(info["name"])
         photos = sorted(set(photo_web_path(f) for f in faces))
         avatar = info.get("avatar") or pick_avatar(faces)
         featured = info.get("featuredPhotos", [])
 
-        if slug in persons:
-            existing_photos = set(persons[slug]["photos"])
-            existing_photos.update(photos)
-            persons[slug]["photos"] = sorted(existing_photos)
-            # Merge featured photos
-            existing_featured = set(persons[slug]["featuredPhotos"])
-            existing_featured.update(featured)
-            persons[slug]["featuredPhotos"] = sorted(existing_featured)
-        else:
-            person = {
-                "name": info["name"],
-                "avatar": avatar,
-                "featuredPhotos": featured,
-                "photos": photos,
-            }
-            if info.get("vnTitle"):
-                person["vnTitle"] = info["vnTitle"]
-            persons[slug] = person
+        person = {
+            "name": info["name"],
+            "id": info.get("id", str(uuid.uuid4())),
+            "avatar": avatar,
+            "featuredPhotos": featured,
+            "photos": photos,
+        }
+        if info.get("vnTitle"):
+            person["vnTitle"] = info["vnTitle"]
+        persons[cluster_key] = person
 
     return persons
 
@@ -99,13 +90,18 @@ def main():
 
     persons = build_person_data(clusters, mapping)
 
+    # Build slug -> cluster_key lookup for group member resolution
+    slug_to_keys: dict[str, list[str]] = {}
+    for ck, p in persons.items():
+        slug_to_keys.setdefault(slugify(p["name"]), []).append(ck)
+
     # Load invite groups (couples/pairs) if exists
     groups: list[dict] = []
     if GROUPS_FILE.exists():
         with open(GROUPS_FILE) as f:
             groups = json.load(f)
 
-    grouped_slugs: set = set()
+    grouped_keys: set = set()
     guests: dict = {}
 
     # Process explicit groups (couples)
@@ -119,19 +115,26 @@ def main():
         all_photos: set = set()
 
         for slug in members:
-            if slug not in persons:
+            keys = slug_to_keys.get(slug, [])
+            if not keys:
                 print(f"Warning: group member '{slug}' not found, skipping")
                 continue
-            p = persons[slug]
-            names.append(p["name"])
-            if avatar is None:
-                avatar = p["avatar"]
-            featured_photos.extend(p["featuredPhotos"])
-            all_photos.update(p["photos"])
-            grouped_slugs.add(slug)
+            for ck in keys:
+                p = persons[ck]
+                names.append(p["name"])
+                if avatar is None:
+                    avatar = p["avatar"]
+                featured_photos.extend(p["featuredPhotos"])
+                all_photos.update(p["photos"])
+                grouped_keys.add(ck)
 
         if names:
+            # Use group id, or first member's id, or generate new
+            member_ids = [persons[ck]["id"] for slug in members for ck in slug_to_keys.get(slug, []) if ck in persons]
+            group_id = group.get("id") or (member_ids[0] if member_ids else str(uuid.uuid4()))
+
             entry = {
+                "id": group_id,
                 "names": names,
                 "avatar": avatar,
                 "featuredPhotos": sorted(set(featured_photos)),
@@ -141,19 +144,21 @@ def main():
                 entry["vnTitle"] = group["vnTitle"]
             if group.get("message"):
                 entry["message"] = group["message"]
-            guests[code] = entry
+            guests[group_id] = entry
 
     # Add remaining solo guests
-    # Load per-person messages from mapping
-    person_messages: dict = {}
+    # Build message lookup from mapping
+    person_messages: dict[str, str] = {}
     for cluster_key, info in mapping.items():
         if info and info.get("message"):
-            person_messages[slugify(info["name"])] = info["message"]
+            person_messages[cluster_key] = info["message"]
 
-    for slug, p in persons.items():
-        if slug in grouped_slugs:
+    for ck, p in persons.items():
+        if ck in grouped_keys:
             continue
+        guest_id = p["id"]
         entry = {
+            "id": guest_id,
             "names": [p["name"]],
             "avatar": p["avatar"],
             "featuredPhotos": p["featuredPhotos"],
@@ -161,21 +166,9 @@ def main():
         }
         if p.get("vnTitle"):
             entry["vnTitle"] = p["vnTitle"]
-        if slug in person_messages:
-            entry["message"] = person_messages[slug]
-        guests[slug] = entry
-
-    # Load existing guests.json to reuse stable IDs
-    existing_ids: dict[str, str] = {}
-    if GUESTS_FILE.exists():
-        with open(GUESTS_FILE) as f:
-            for key, data in json.load(f).items():
-                if "id" in data:
-                    existing_ids[key] = data["id"]
-
-    # Assign stable UUIDs (reuse existing, generate new for new guests)
-    for key, entry in guests.items():
-        entry["id"] = existing_ids.get(key, str(uuid.uuid4()))
+        if ck in person_messages:
+            entry["message"] = person_messages[ck]
+        guests[guest_id] = entry
 
     # Ensure output directory exists
     GUESTS_FILE.parent.mkdir(parents=True, exist_ok=True)

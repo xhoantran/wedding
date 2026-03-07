@@ -4,7 +4,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import { WEDDING, HERO_IMAGE, getDisplayDate } from "@/lib/constants";
-import { getTranslations } from "@/lib/i18n";
+import { getTranslations, getInviteTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import { useGuest, getGuestDisplayName } from "@/lib/guest-context";
 import CountdownTimer from "./CountdownTimer";
@@ -21,8 +21,9 @@ export default function Hero({ locale }: { locale: Locale }) {
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const t = getTranslations(locale);
   const { guest } = useGuest();
-  const greeting = guest
-    ? t.invite.greeting.replace("{name}", getGuestDisplayName(guest, locale))
+  const inviteT = guest ? getInviteTranslations(locale, { vnTitle: guest.vnTitle }) : null;
+  const greeting = guest && inviteT
+    ? inviteT.greeting.replace("{name}", getGuestDisplayName(guest, locale))
     : null;
 
   return (

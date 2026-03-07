@@ -12,11 +12,7 @@ function loadGuests(): GuestsMap {
 
 export function getGuest(id: string): GuestData | null {
   const guests = loadGuests();
-  // Look up by UUID id field
-  for (const data of Object.values(guests)) {
-    if (data.id === id) return data;
-  }
-  return null;
+  return guests[id] ?? null;
 }
 
 export function getGuestPhotosSet(id: string): Set<string> {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { GuestData, Locale } from "@/lib/types";
-import { getTranslations } from "@/lib/i18n";
+import { getInviteTranslations } from "@/lib/i18n";
 import { getGuestDisplayName } from "@/lib/guest-context";
 
 export default function PersonalizedPreloader({
@@ -18,11 +18,11 @@ export default function PersonalizedPreloader({
 }) {
   const [ready, setReady] = useState(false);
   const [exit, setExit] = useState(false);
-  const t = getTranslations(locale).invite;
+  const t = getInviteTranslations(locale, { vnTitle: guest.vnTitle });
 
   const displayName = getGuestDisplayName(guest, locale);
   const greeting = t.greeting.replace("{name}", displayName);
-  const message = guest.message || t.welcomeMessage;
+  const message = (guest.message || t.welcomeMessage).replace("{name}", displayName);
   const avatarPhoto = guest.avatar;
 
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function PersonalizedPreloader({
             onAnimationComplete={() => setReady(true)}
             className="mt-8 text-center font-serif text-xs tracking-widest text-gold/70 uppercase"
           >
-            {t.openInvitation}
+            {t.openInvitation.replace("{name}", displayName)}
           </motion.p>
         </motion.div>
       )}

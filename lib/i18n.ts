@@ -118,6 +118,26 @@ const translations = {
       featuredHeading: "Thank you, {name}",
       featuredSubheading: "for being part of our journey",
     },
+    inviteFormalEm: {
+      greeting: "Dear {name},",
+      welcomeMessage:
+        "We would be honored to have you celebrate with us",
+      openInvitation: "Open your invitation",
+      yourPhotos: "Your Photos",
+      allPhotos: "All Photos",
+      featuredHeading: "Thank you, {name}",
+      featuredSubheading: "for being part of our journey",
+    },
+    inviteFormalCon: {
+      greeting: "Dear {name},",
+      welcomeMessage:
+        "We would be honored to have you celebrate with us",
+      openInvitation: "Open your invitation",
+      yourPhotos: "Your Photos",
+      allPhotos: "All Photos",
+      featuredHeading: "Thank you, {name}",
+      featuredSubheading: "for being part of our journey",
+    },
   },
   vi: {
     hero: {
@@ -236,11 +256,54 @@ const translations = {
       featuredHeading: "Cảm ơn {name}",
       featuredSubheading: "đã là một phần trong hành trình này",
     },
+    // Anh, Chị → em / chúng em
+    inviteFormalEm: {
+      greeting: "Gửi {name},",
+      welcomeMessage:
+        "Chúng em rất hân hạnh được đón tiếp {name}",
+      openInvitation: "Mời {name} mở thiệp mời",
+      yourPhotos: "Ảnh Của Bạn",
+      allPhotos: "Tất Cả Ảnh",
+      featuredHeading: "Chúng em cảm ơn {name}",
+      featuredSubheading: "đã là một phần trong hành trình của chúng em",
+    },
+    // Bác, Chú, Cô, Dì, Ông, Bà, etc. → con / chúng con
+    inviteFormalCon: {
+      greeting: "Kính gửi {name},",
+      welcomeMessage:
+        "Chúng con rất hân hạnh được đón tiếp {name}",
+      openInvitation: "Kính mời {name} mở thiệp mời",
+      yourPhotos: "Ảnh Của Bạn",
+      allPhotos: "Tất Cả Ảnh",
+      featuredHeading: "Chúng con cảm ơn {name}",
+      featuredSubheading: "đã là một phần trong hành trình của chúng con",
+    },
   },
 } as const;
 
 export type Translations = (typeof translations)[Locale];
+export type InviteTranslations = {
+  greeting: string;
+  welcomeMessage: string;
+  openInvitation: string;
+  yourPhotos: string;
+  allPhotos: string;
+  featuredHeading: string;
+  featuredSubheading: string;
+};
 
 export function getTranslations(locale: Locale) {
   return translations[locale];
+}
+
+const EM_TITLES = new Set(["Anh", "Chị"]);
+
+export function getInviteTranslations(
+  locale: Locale,
+  opts?: { vnTitle?: string }
+): InviteTranslations {
+  const t = translations[locale];
+  if (!opts?.vnTitle) return t.invite;
+  const firstWord = opts.vnTitle.split(/\s/)[0];
+  return EM_TITLES.has(firstWord) ? t.inviteFormalEm : t.inviteFormalCon;
 }
