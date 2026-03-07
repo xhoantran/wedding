@@ -60,15 +60,20 @@ def get_providers() -> list[str]:
     return ["CPUExecutionProvider"]
 
 
-def init_face_analyzer() -> FaceAnalysis:
+def init_face_analyzer(det_size: int = 640) -> FaceAnalysis:
     """Initialize InsightFace analyzer with buffalo_l model (ArcFace)."""
-    providers = get_providers()
+    # CoreML has shape constraints that fail with non-standard det_size.
+    # Fall back to CPU for larger detection sizes.
+    if det_size > 640:
+        providers = ["CPUExecutionProvider"]
+    else:
+        providers = get_providers()
     print(f"Using providers: {providers}")
     app = FaceAnalysis(
         name="buffalo_l",
         providers=providers,
     )
-    app.prepare(ctx_id=0, det_size=(640, 640))
+    app.prepare(ctx_id=0, det_size=(det_size, det_size))
     return app
 
 
@@ -107,6 +112,8 @@ def detect_and_extract(app: FaceAnalysis, photo_path: Path) -> list[dict]:
             "source_dir": photo_path.parent.name,
             "face_index": i,
             "location": [int(top), int(right), int(bottom), int(left)],
+            "img_width": w,
+            "img_height": h,
             "det_score": float(face.det_score),
             "encoding": face.embedding.tolist(),
             "crop_path": f"crops/{crop_name}",
@@ -123,6 +130,8 @@ def main():
                         help="Custom photo directories (overrides defaults)")
     parser.add_argument("--min-score", type=float, default=0.5,
                         help="Minimum detection confidence (0-1, default 0.5)")
+    parser.add_argument("--det-size", type=int, default=640,
+                        help="Detection size (default 640, use 1280+ for better small face detection)")
     args = parser.parse_args()
 
     dirs = [Path(d) for d in args.dirs] if args.dirs else PHOTO_DIRS
@@ -141,8 +150,8 @@ def main():
     print(f"Found {len(photos)} photos across {len(dirs)} directories")
 
     # Initialize InsightFace
-    print("Loading InsightFace model (buffalo_l / ArcFace)...")
-    app = init_face_analyzer()
+    print(f"Loading InsightFace model (buffalo_l / ArcFace, det_size={args.det_size})...")
+    app = init_face_analyzer(det_size=args.det_size)
     print("Model loaded.\n")
 
     all_embeddings = list(existing_data) if not args.force else []

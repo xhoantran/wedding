@@ -76,12 +76,15 @@ def build_person_data(clusters, mapping) -> dict:
             existing_featured.update(featured)
             persons[slug]["featuredPhotos"] = sorted(existing_featured)
         else:
-            persons[slug] = {
+            person = {
                 "name": info["name"],
                 "avatar": avatar,
                 "featuredPhotos": featured,
                 "photos": photos,
             }
+            if info.get("vnTitle"):
+                person["vnTitle"] = info["vnTitle"]
+            persons[slug] = person
 
     return persons
 
@@ -133,6 +136,8 @@ def main():
                 "featuredPhotos": sorted(set(featured_photos)),
                 "photos": sorted(all_photos),
             }
+            if group.get("vnTitle"):
+                entry["vnTitle"] = group["vnTitle"]
             if group.get("message"):
                 entry["message"] = group["message"]
             guests[code] = entry
@@ -153,6 +158,8 @@ def main():
             "featuredPhotos": p["featuredPhotos"],
             "photos": p["photos"],
         }
+        if p.get("vnTitle"):
+            entry["vnTitle"] = p["vnTitle"]
         if slug in person_messages:
             entry["message"] = person_messages[slug]
         guests[slug] = entry

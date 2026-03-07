@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { GuestData, Locale } from "@/lib/types";
 import { getTranslations } from "@/lib/i18n";
+import { getGuestDisplayName } from "@/lib/guest-context";
 
 export default function PersonalizedPreloader({
   locale,
@@ -19,7 +20,7 @@ export default function PersonalizedPreloader({
   const [exit, setExit] = useState(false);
   const t = getTranslations(locale).invite;
 
-  const displayName = guest.names.join(" & ");
+  const displayName = getGuestDisplayName(guest, locale);
   const greeting = t.greeting.replace("{name}", displayName);
   const message = guest.message || t.welcomeMessage;
   const avatarPhoto = guest.avatar;

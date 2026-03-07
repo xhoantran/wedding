@@ -124,6 +124,7 @@ def build_clusters_data():
             "photoWebPaths": photo_web_paths,
             "name": m["name"] if m else None,
             "message": m.get("message", "") if m else "",
+            "vnTitle": m.get("vnTitle", "") if m else "",
             "skipped": m is None and key in mapping,
             "avatar": m.get("avatar") if m else None,
             "featuredPhotos": m.get("featuredPhotos", []) if m else [],
@@ -444,6 +445,7 @@ function renderClusters() {
     ).join('');
 
     const nameVal = c.name ? c.name.replace(/"/g, '&quot;') : '';
+    const vnTitleVal = c.vnTitle ? c.vnTitle.replace(/"/g, '&quot;') : '';
     const msgVal = c.message ? c.message.replace(/"/g, '&quot;') : '';
 
     // Noise: show each face individually with its own actions
@@ -507,6 +509,7 @@ function renderClusters() {
         <div class="cluster-crops">${crops}</div>
         <div class="cluster-actions">
           <input type="text" placeholder="Name..." value="${nameVal}" id="name-${c.key}" onkeydown="if(event.key==='Enter')assignCluster('${c.key}')">
+          <input type="text" placeholder="VN Title (e.g. Bác Xuân Anh)..." value="${vnTitleVal}" id="vntitle-${c.key}" style="width:220px" onkeydown="if(event.key==='Enter')assignCluster('${c.key}')">
           <input type="text" placeholder="Message (optional)" value="${msgVal}" id="msg-${c.key}" style="width:300px" onkeydown="if(event.key==='Enter')assignCluster('${c.key}')">
           <button class="btn" onclick="assignCluster('${c.key}')">Assign</button>
           <button class="btn danger" onclick="skipCluster('${c.key}')">Skip</button>
@@ -528,6 +531,7 @@ function buildMapping() {
     if (c.skipped) { mapping[c.key] = null; }
     else if (c.name) {
       const entry = { name: c.name };
+      if (c.vnTitle) entry.vnTitle = c.vnTitle;
       if (c.message) entry.message = c.message;
       if (c.avatar) entry.avatar = c.avatar;
       if (c.featuredPhotos && c.featuredPhotos.length > 0) entry.featuredPhotos = c.featuredPhotos;
@@ -579,9 +583,10 @@ async function persistMapping() {
 async function assignCluster(key) {
   const name = document.getElementById('name-' + key).value.trim();
   if (!name) return;
+  const vnTitle = document.getElementById('vntitle-' + key).value.trim();
   const message = document.getElementById('msg-' + key).value.trim();
   const c = CLUSTERS.find(c => c.key === key);
-  if (c) { c.name = name; c.message = message; c.skipped = false; }
+  if (c) { c.name = name; c.vnTitle = vnTitle; c.message = message; c.skipped = false; }
   renderClusters();
   if (await persistMapping()) {
     toast('Assigned: ' + name, 'success');
@@ -592,7 +597,7 @@ async function assignCluster(key) {
 
 async function skipCluster(key) {
   const c = CLUSTERS.find(c => c.key === key);
-  if (c) { c.name = null; c.message = ''; c.skipped = true; }
+  if (c) { c.name = null; c.vnTitle = ''; c.message = ''; c.skipped = true; }
   renderClusters();
   if (await persistMapping()) {
     toast('Skipped ' + key, 'success');

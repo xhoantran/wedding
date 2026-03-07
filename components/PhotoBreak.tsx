@@ -23,7 +23,7 @@ function ParallaxPhoto({ src, index }: { src: string; index: number }) {
       ref={ref}
       className={`relative h-[70vh] overflow-hidden ${index === 0 ? "section-curve-top" : ""}`}
     >
-      <motion.div className="absolute inset-[-80px]" style={{ y }}>
+      <motion.div className="absolute -inset-20" style={{ y }}>
         <Image
           src={src}
           alt=""

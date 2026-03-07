@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import { useGuest } from "@/lib/guest-context";
+import { useGuest, getGuestDisplayName } from "@/lib/guest-context";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import TextReveal from "@/components/TextReveal";
@@ -253,7 +253,7 @@ export default function FeaturedGuestSection({ locale }: { locale: Locale }) {
 
   if (!guest || guest.featuredPhotos.length === 0) return null;
 
-  const displayName = guest.names.join(" & ");
+  const displayName = getGuestDisplayName(guest, locale);
   const heading = t.featuredHeading.replace("{name}", displayName);
   const photos = guest.featuredPhotos;
   const isSinglePhoto = photos.length === 1;

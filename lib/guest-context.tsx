@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { GuestData } from "./types";
+import { GuestData, Locale } from "./types";
 
 interface GuestContextValue {
   guest: GuestData | null;
@@ -20,4 +20,11 @@ const GuestContext = createContext<GuestContextValue>({
 export const GuestProvider = GuestContext.Provider;
 export function useGuest() {
   return useContext(GuestContext);
+}
+
+export function getGuestDisplayName(guest: GuestData, locale: Locale): string {
+  if (locale === "vi" && guest.vnTitle) {
+    return guest.vnTitle;
+  }
+  return guest.names.join(" & ");
 }

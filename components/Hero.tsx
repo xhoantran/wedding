@@ -6,7 +6,7 @@ import { useRef } from "react";
 import { WEDDING, HERO_IMAGE, getDisplayDate } from "@/lib/constants";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
-import { useGuest } from "@/lib/guest-context";
+import { useGuest, getGuestDisplayName } from "@/lib/guest-context";
 import CountdownTimer from "./CountdownTimer";
 import TextReveal from "./TextReveal";
 
@@ -22,7 +22,7 @@ export default function Hero({ locale }: { locale: Locale }) {
   const t = getTranslations(locale);
   const { guest } = useGuest();
   const greeting = guest
-    ? t.invite.greeting.replace("{name}", guest.names.join(" & "))
+    ? t.invite.greeting.replace("{name}", getGuestDisplayName(guest, locale))
     : null;
 
   return (
