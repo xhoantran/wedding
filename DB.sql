@@ -65,5 +65,13 @@ CREATE TABLE guest_notes (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- Invite tracking (records when a guest views their invite link)
+CREATE TABLE invites (
+  id TEXT PRIMARY KEY,
+  is_seen BOOLEAN DEFAULT false,
+  seen_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Storage bucket for photo uploads
 -- Create via Supabase Dashboard: Storage > New bucket > "wedding-photos" (public)

@@ -28,8 +28,10 @@ async function markAsSeen(id: string): Promise<void> {
   const supabase = getSupabase();
   await supabase
     .from("invites")
-    .update({ is_seen: true })
-    .eq("id", id);
+    .upsert(
+      { id, is_seen: true, seen_at: new Date().toISOString() },
+      { onConflict: "id" }
+    );
 }
 
 export async function getGuest(id: string): Promise<GuestData | null> {

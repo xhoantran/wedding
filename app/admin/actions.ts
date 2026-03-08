@@ -43,17 +43,20 @@ export interface GuestRow {
   rsvpDate: string;
   note: string;
   ceremony: boolean;
+  isSeen: boolean;
+  seenAt: string;
 }
 
 export async function fetchGuestList(): Promise<GuestRow[]> {
   const jsonGuests = loadJsonGuests();
 
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const [{ data: rsvps }, { data: notes }, { data: dbGuests }] =
+  const [{ data: rsvps }, { data: notes }, { data: dbGuests }, { data: invites }] =
     await Promise.all([
       supabase.from("rsvps").select("*"),
       supabase.from("guest_notes").select("*"),
       supabase.from("guests").select("*"),
+      supabase.from("invites").select("id, is_seen, seen_at"),
     ]);
 
   const rsvpMap = new Map(
@@ -66,6 +69,12 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
     (notes ?? []).map((n: Record<string, unknown>) => [
       n.guest_id as string,
       String(n.note ?? ""),
+    ])
+  );
+  const seenMap = new Map(
+    (invites ?? []).map((inv: Record<string, unknown>) => [
+      inv.id as string,
+      { isSeen: inv.is_seen === true, seenAt: String(inv.seen_at ?? "") },
     ])
   );
 
@@ -88,6 +97,8 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
       note: noteMap.get(g.id) ?? "",
       ceremony: g.ceremony ?? false,
+      isSeen: seenMap.get(g.id)?.isSeen ?? false,
+      seenAt: seenMap.get(g.id)?.seenAt ?? "",
     });
   }
 
@@ -101,7 +112,7 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       names: (g.names as string[]).join(" & "),
       vnTitle: g.vn_title ?? "",
       avatar: g.avatar ?? "",
-      hasPhotos: false,  // Supabase guests have string avatar
+      hasPhotos: false,
       photoCount: 0,
       rsvpStatus: rsvp ? String(rsvp.attendance) : "pending",
       rsvpGuests: rsvp ? Number(rsvp.guests) || 0 : 0,
@@ -110,6 +121,8 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
       rsvpDate: rsvp?.updated_at ? String(rsvp.updated_at) : "",
       note: noteMap.get(g.id) ?? "",
       ceremony: g.ceremony ?? false,
+      isSeen: seenMap.get(g.id)?.isSeen ?? false,
+      seenAt: seenMap.get(g.id)?.seenAt ?? "",
     });
   }
 
