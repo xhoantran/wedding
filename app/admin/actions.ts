@@ -86,7 +86,14 @@ export async function fetchGuestList(): Promise<GuestRow[]> {
     rows.push({
       id: g.id,
       names: g.names.join(" & "),
-      vnTitle: (g.vnTitle ?? []).join(" & "),
+      vnTitle: g.vnTitle?.length
+        ? g.names
+            .map((name, i) => {
+              const title = g.vnTitle?.[i];
+              return title ? `${title} ${name}` : name;
+            })
+            .join(" & ")
+        : "",
       avatar: (g.avatar ?? [])[0] ?? "",
       hasPhotos: true,
       photoCount: g.photos.length,

@@ -165,11 +165,18 @@ def main():
                 "photos": sorted(all_photos),
             }
             # Inherit vnTitle as array: group-level (split by &) > member titles
+            # Always pad to match names length
             group_vn = group.get("vnTitle")
             if group_vn:
-                entry["vnTitle"] = [t.strip() for t in group_vn.split("&")]
+                titles = [t.strip() for t in group_vn.split("&")]
             elif member_vn_titles:
-                entry["vnTitle"] = member_vn_titles
+                titles = member_vn_titles
+            else:
+                titles = []
+            # Pad with "" so vnTitle always matches names length
+            while len(titles) < len(names):
+                titles.insert(0, "")
+            entry["vnTitle"] = titles
             # Inherit message: group-level > first member's
             message = group.get("message") or (member_messages[0] if member_messages else "")
             if message:
@@ -192,8 +199,7 @@ def main():
             "featuredPhotos": p["featuredPhotos"],
             "photos": p["photos"],
         }
-        if p.get("vnTitle"):
-            entry["vnTitle"] = [p["vnTitle"]]
+        entry["vnTitle"] = [p["vnTitle"]] if p.get("vnTitle") else [""]
         if ck in person_messages:
             entry["message"] = person_messages[ck]
         entry["ceremony"] = True
