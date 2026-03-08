@@ -17,16 +17,33 @@ function loadJsonGuests(): GuestsMap {
   return jsonGuestsCache;
 }
 
-export async function getGuest(id: string): Promise<GuestData | null> {
-  // Check JSON (photo guests) first
-  const jsonGuests = loadJsonGuests();
-  if (jsonGuests[id]) return jsonGuests[id];
-
-  // Fallback to Supabase (non-photo guests)
-  const supabase = createClient(
+function getSupabase() {
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
   );
+}
+
+async function markAsSeen(id: string): Promise<void> {
+  const supabase = getSupabase();
+  await supabase
+    .from("invites")
+    .update({ is_seen: true })
+    .eq("id", id);
+}
+
+export async function getGuest(id: string): Promise<GuestData | null> {
+  // Mark invite as seen (fire-and-forget)
+  markAsSeen(id);
+
+  // Check JSON (photo guests) first
+  const jsonGuests = loadJsonGuests();
+  if (jsonGuests[id]) {
+    return jsonGuests[id];
+  }
+
+  // Fallback to Supabase (non-photo guests)
+  const supabase = getSupabase();
   const { data, error } = await supabase
     .from("guests")
     .select("*")
