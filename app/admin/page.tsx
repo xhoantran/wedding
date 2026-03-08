@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useTransition, useMemo } from "react";
+import { useState, useRef, useTransition, useMemo, Fragment } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
   fetchTableData,
@@ -368,6 +368,7 @@ function GuestTable({
   onRefresh: () => void;
 }) {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>("names");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [filter, setFilter] = useState<FilterKey>("all");
@@ -385,7 +386,6 @@ function GuestTable({
   const filtered = useMemo(() => {
     let result = rows;
 
-    // Search
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(
@@ -395,7 +395,6 @@ function GuestTable({
       );
     }
 
-    // Filter
     if (filter === "seen") result = result.filter((r) => r.isSeen);
     else if (filter === "unseen") result = result.filter((r) => !r.isSeen);
     else if (filter === "accept")
@@ -406,7 +405,6 @@ function GuestTable({
       result = result.filter((r) => r.rsvpStatus === "pending");
     else if (filter === "ceremony") result = result.filter((r) => r.ceremony);
 
-    // Sort
     result = [...result].sort((a, b) => {
       let cmp = 0;
       if (sortKey === "names") cmp = a.names.localeCompare(b.names);
@@ -540,11 +538,12 @@ function GuestTable({
         </span>
       </div>
 
-      {/* Table */}
+      {/* Table — compact rows, click to expand */}
       <div className="overflow-x-auto rounded-lg border border-stone-200 bg-white">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-stone-200 bg-stone-50/80">
+              <th className="w-8 px-3 py-3" />
               <SortHeader
                 label="Name"
                 sortKey="names"
@@ -552,9 +551,6 @@ function GuestTable({
                 currentDir={sortDir}
                 onSort={handleSort}
               />
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Type
-              </th>
               <SortHeader
                 label="Seen"
                 sortKey="isSeen"
@@ -570,89 +566,25 @@ function GuestTable({
                 onSort={handleSort}
               />
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Guests
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Meal
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Message
-              </th>
-              <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
                 Note
               </th>
-              <SortHeader
-                label="Date"
-                sortKey="rsvpDate"
-                currentSort={sortKey}
-                currentDir={sortDir}
-                onSort={handleSort}
-              />
               <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500" />
             </tr>
           </thead>
           <tbody>
-            {filtered.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-stone-100 last:border-0 transition-colors hover:bg-stone-50/60"
-              >
-                {/* Name + avatar */}
-                <td className="whitespace-nowrap px-4 py-3">
-                  <div className="flex items-center gap-2.5">
-                    {row.avatar ? (
-                      <img
-                        src={row.avatar}
-                        alt=""
-                        className="h-8 w-8 rounded-full object-cover ring-1 ring-stone-200"
-                      />
-                    ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-[11px] font-semibold text-stone-500 ring-1 ring-stone-200">
-                        {row.names.charAt(0)}
-                      </span>
-                    )}
-                    <div>
-                      <p className="font-medium text-stone-800">{row.names}</p>
-                      {row.vnTitle && (
-                        <p className="text-xs text-stone-400">{row.vnTitle}</p>
-                      )}
-                    </div>
-                  </div>
-                </td>
-
-                {/* Type badges */}
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ${
-                        row.hasPhotos
-                          ? "bg-blue-50 text-blue-700 ring-blue-600/20"
-                          : "bg-amber-50 text-amber-700 ring-amber-600/20"
-                      }`}
-                    >
-                      {row.hasPhotos ? `${row.photoCount} photos` : "invite"}
-                    </span>
-                    {row.ceremony && (
-                      <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
-                        ceremony
-                      </span>
-                    )}
-                  </div>
-                </td>
-
-                {/* Seen status */}
-                <td className="px-4 py-3">
-                  {row.isSeen ? (
-                    <span
-                      className="inline-flex items-center gap-1 text-xs text-blue-600"
-                      title={
-                        row.seenAt
-                          ? `Viewed ${new Date(row.seenAt).toLocaleString()}`
-                          : "Viewed"
-                      }
-                    >
+            {filtered.map((row) => {
+              const isOpen = expanded === row.id;
+              return (
+                <Fragment key={row.id}>
+                  {/* Main row */}
+                  <tr
+                    onClick={() => setExpanded(isOpen ? null : row.id)}
+                    className={`cursor-pointer border-b border-stone-100 transition-colors ${isOpen ? "bg-stone-50" : "hover:bg-stone-50/60"}`}
+                  >
+                    {/* Chevron */}
+                    <td className="px-3 py-3">
                       <svg
-                        className="h-4 w-4"
+                        className={`h-4 w-4 text-stone-400 transition-transform ${isOpen ? "rotate-90" : ""}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -661,143 +593,210 @@ function GuestTable({
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                          d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          d="M9 5l7 7-7 7"
                         />
                       </svg>
-                      {row.seenAt
-                        ? new Date(row.seenAt).toLocaleDateString()
-                        : "Yes"}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-stone-300">-</span>
-                  )}
-                </td>
+                    </td>
 
-                {/* RSVP status */}
-                <td className="px-4 py-3">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLES[row.rsvpStatus] ?? STATUS_STYLES.pending}`}
-                  >
-                    {row.rsvpStatus}
-                  </span>
-                </td>
+                    {/* Name + avatar + badges */}
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        {row.avatar ? (
+                          <img
+                            src={row.avatar}
+                            alt=""
+                            className="h-8 w-8 rounded-full object-cover ring-1 ring-stone-200"
+                          />
+                        ) : (
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-stone-100 text-[11px] font-semibold text-stone-500 ring-1 ring-stone-200">
+                            {row.names.charAt(0)}
+                          </span>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-stone-800">
+                              {row.names}
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ring-1 ring-inset ${
+                                  row.hasPhotos
+                                    ? "bg-blue-50 text-blue-700 ring-blue-600/20"
+                                    : "bg-amber-50 text-amber-700 ring-amber-600/20"
+                                }`}
+                              >
+                                {row.hasPhotos
+                                  ? `${row.photoCount} photos`
+                                  : "invite"}
+                              </span>
+                              {row.ceremony && (
+                                <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-medium text-purple-700 ring-1 ring-inset ring-purple-600/20">
+                                  ceremony
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {row.vnTitle && (
+                            <p className="text-xs text-stone-400">
+                              {row.vnTitle}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
 
-                {/* Guests count */}
-                <td className="px-4 py-3 text-stone-600">
-                  {row.rsvpGuests || "-"}
-                </td>
+                    {/* Seen */}
+                    <td className="px-4 py-3">
+                      {row.isSeen ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          {row.seenAt
+                            ? new Date(row.seenAt).toLocaleDateString()
+                            : "Yes"}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-stone-300">-</span>
+                      )}
+                    </td>
 
-                {/* Meal */}
-                <td className="px-4 py-3 text-stone-600">
-                  {row.rsvpMeal || "-"}
-                </td>
+                    {/* RSVP */}
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${STATUS_STYLES[row.rsvpStatus] ?? STATUS_STYLES.pending}`}
+                      >
+                        {row.rsvpStatus}
+                      </span>
+                    </td>
 
-                {/* Message */}
-                <td className="max-w-44 truncate px-4 py-3 text-stone-500">
-                  {row.rsvpMessage || "-"}
-                </td>
+                    {/* Note (inline, click stops propagation) */}
+                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                      <NoteCell guestId={row.id} initial={row.note} />
+                    </td>
 
-                {/* Note */}
-                <td className="px-4 py-3">
-                  <NoteCell guestId={row.id} initial={row.note} />
-                </td>
-
-                {/* Date */}
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-stone-400">
-                  {row.rsvpDate
-                    ? new Date(row.rsvpDate).toLocaleDateString()
-                    : "-"}
-                </td>
-
-                {/* Actions */}
-                <td className="whitespace-nowrap px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => copyInviteUrl(row.id)}
-                      title="Copy invite URL"
-                      className="rounded p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+                    {/* Quick actions */}
+                    <td
+                      className="whitespace-nowrap px-4 py-3"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                        className="h-3.5 w-3.5"
-                      >
-                        <path d="M5.5 3.5A1.5 1.5 0 0 1 7 2h2.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 1 .439 1.061V9.5A1.5 1.5 0 0 1 12 11V8.621a3 3 0 0 0-.879-2.121L9 4.379A3 3 0 0 0 6.879 3.5H5.5Z" />
-                        <path d="M4 5a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 14h5a1.5 1.5 0 0 0 1.5-1.5V8.621a1.5 1.5 0 0 0-.44-1.06L7.94 5.439A1.5 1.5 0 0 0 6.878 5H4Z" />
-                      </svg>
-                    </button>
-                    {!row.hasPhotos && (
-                      <button
-                        onClick={async () => {
-                          const ok = await updateGuestCeremony(
-                            row.id,
-                            !row.ceremony
-                          );
-                          if (ok) onRefresh();
-                        }}
-                        title={
-                          row.ceremony
-                            ? "Remove from ceremony"
-                            : "Add to ceremony"
-                        }
-                        className={`rounded p-1.5 transition-colors ${row.ceremony ? "text-purple-500 hover:bg-purple-50" : "text-stone-400 hover:bg-stone-100 hover:text-stone-600"}`}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                          className="h-3.5 w-3.5"
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => copyInviteUrl(row.id)}
+                          title="Copy invite URL"
+                          className="rounded p-1.5 text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
                         >
-                          <circle
-                            cx="5.5"
-                            cy="8"
-                            r="3.5"
-                            stroke="currentColor"
-                            strokeWidth="0.5"
-                            fill="none"
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                            className="h-3.5 w-3.5"
+                          >
+                            <path d="M5.5 3.5A1.5 1.5 0 0 1 7 2h2.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 1 .439 1.061V9.5A1.5 1.5 0 0 1 12 11V8.621a3 3 0 0 0-.879-2.121L9 4.379A3 3 0 0 0 6.879 3.5H5.5Z" />
+                            <path d="M4 5a1.5 1.5 0 0 0-1.5 1.5v6A1.5 1.5 0 0 0 4 14h5a1.5 1.5 0 0 0 1.5-1.5V8.621a1.5 1.5 0 0 0-.44-1.06L7.94 5.439A1.5 1.5 0 0 0 6.878 5H4Z" />
+                          </svg>
+                        </button>
+                        {!row.hasPhotos && (
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            disabled={deleting === row.id}
+                            title="Delete guest"
+                            className="rounded p-1.5 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 16 16"
+                              fill="currentColor"
+                              className="h-3.5 w-3.5"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5A.75.75 0 0 1 9.95 6Z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+
+                  {/* Expanded detail row */}
+                  {isOpen && (
+                    <tr className="border-b border-stone-100 bg-stone-50/50">
+                      <td colSpan={6} className="px-4 py-4">
+                        <div className="ml-11 grid grid-cols-2 gap-x-12 gap-y-3 sm:grid-cols-4">
+                          <DetailField label="Guests" value={row.rsvpGuests ? String(row.rsvpGuests) : "-"} />
+                          <DetailField label="Meal" value={row.rsvpMeal || "-"} />
+                          <DetailField
+                            label="RSVP Date"
+                            value={
+                              row.rsvpDate
+                                ? new Date(row.rsvpDate).toLocaleString()
+                                : "-"
+                            }
                           />
-                          <circle
-                            cx="10.5"
-                            cy="8"
-                            r="3.5"
-                            stroke="currentColor"
-                            strokeWidth="0.5"
-                            fill="none"
+                          <DetailField
+                            label="Seen At"
+                            value={
+                              row.seenAt
+                                ? new Date(row.seenAt).toLocaleString()
+                                : "-"
+                            }
                           />
-                        </svg>
-                      </button>
-                    )}
-                    {!row.hasPhotos && (
-                      <button
-                        onClick={() => handleDelete(row.id)}
-                        disabled={deleting === row.id}
-                        title="Delete guest"
-                        className="rounded p-1.5 text-stone-400 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                          className="h-3.5 w-3.5"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5A.75.75 0 0 1 9.95 6Z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                          <div className="col-span-2 sm:col-span-4">
+                            <DetailField
+                              label="Message"
+                              value={row.rsvpMessage || "-"}
+                            />
+                          </div>
+                          <div className="col-span-2 sm:col-span-4">
+                            <DetailField label="Invite ID" value={row.id} mono />
+                          </div>
+                          {!row.hasPhotos && (
+                            <div className="col-span-2 pt-1 sm:col-span-4">
+                              <button
+                                onClick={async () => {
+                                  const ok = await updateGuestCeremony(
+                                    row.id,
+                                    !row.ceremony
+                                  );
+                                  if (ok) onRefresh();
+                                }}
+                                className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
+                                  row.ceremony
+                                    ? "bg-purple-50 text-purple-700 ring-purple-600/20 hover:bg-purple-100"
+                                    : "bg-stone-100 text-stone-500 ring-stone-500/10 hover:bg-stone-200"
+                                }`}
+                              >
+                                {row.ceremony
+                                  ? "Remove from ceremony"
+                                  : "Add to ceremony"}
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
         {filtered.length === 0 && (
@@ -807,6 +806,29 @@ function GuestTable({
         )}
       </div>
     </>
+  );
+}
+
+function DetailField({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-stone-400">
+        {label}
+      </p>
+      <p
+        className={`mt-0.5 text-sm text-stone-700 ${mono ? "font-mono text-xs select-all" : ""}`}
+      >
+        {value}
+      </p>
+    </div>
   );
 }
 
