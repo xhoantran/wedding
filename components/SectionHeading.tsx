@@ -15,7 +15,7 @@ export default function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <div className="mb-8 text-center md:mb-16">
-      <h2 className="font-serif text-4xl font-light tracking-wide text-charcoal md:text-5xl">
+      <h2 className="gold-glow font-serif text-4xl font-light tracking-wide text-charcoal md:text-5xl">
         <TextReveal
           text={title}
           splitBy="word"

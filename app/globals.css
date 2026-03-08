@@ -121,6 +121,11 @@ html {
   animation: shimmer 2s linear infinite;
 }
 
+/* Dreamy golden glow for headings */
+.gold-glow {
+  text-shadow: 0 0 30px rgba(212, 168, 67, 0.25), 0 0 60px rgba(212, 168, 67, 0.1);
+}
+
 /* Ken Burns ambient zoom for featured photos */
 @keyframes kenburns {
   0%, 100% { transform: scale(1); }

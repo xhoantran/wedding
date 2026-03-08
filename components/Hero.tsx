@@ -97,7 +97,10 @@ export default function Hero({ locale }: { locale: Locale }) {
             />
           ))}
 
-          <div className="flex flex-col items-center gap-1">
+          <div
+            className="flex flex-col items-center gap-1"
+            style={{ textShadow: "0 0 40px rgba(212,168,67,0.3), 0 0 80px rgba(212,168,67,0.15)" }}
+          >
             <TextReveal
               text={WEDDING.groomName}
               delay={0.4}

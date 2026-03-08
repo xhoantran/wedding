@@ -108,6 +108,12 @@ const translations = {
       errorTooSoon: "Please wait a moment before sending another wish.",
       emptyState: "Be the first to leave a wish!",
     },
+    photoBreak: {
+      words: ["Love", "Joy", "Forever"],
+    },
+    cinematicBreak: {
+      title: "A moment of tradition",
+    },
     invite: {
       greeting: "Dear {name},",
       welcomeMessage:
@@ -245,6 +251,12 @@ const translations = {
       errorGeneric: "Đã xảy ra lỗi. Vui lòng thử lại.",
       errorTooSoon: "Vui lòng đợi một chút trước khi gửi lời chúc tiếp.",
       emptyState: "Hãy là người đầu tiên gửi lời chúc!",
+    },
+    photoBreak: {
+      words: ["Yêu", "Hạnh Phúc", "Mãi Mãi"],
+    },
+    cinematicBreak: {
+      title: "Khoảnh khắc truyền thống",
     },
     invite: {
       greeting: "Thân gửi {name},",

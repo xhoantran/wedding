@@ -23,6 +23,7 @@ import TeamPoll from "@/components/TeamPoll";
 import GuestWishes from "@/components/GuestWishes";
 import Footer from "@/components/Footer";
 import MusicPlayer from "@/components/MusicPlayer";
+import ColorTemperature from "@/components/ColorTemperature";
 
 export default function WeddingPage({ locale }: { locale: Locale }) {
   const lenisRef = useRef<LenisRef>(null);
@@ -81,11 +82,11 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
       >
         <Navigation locale={locale} />
         <Hero locale={locale} />
-        <PhotoBreak />
+        <PhotoBreak locale={locale} />
         <FeaturedGuestSection locale={locale} />
         <RomanticQuote locale={locale} />
-        <CinematicBreak />
         <WeddingDetails locale={locale} showCeremony={guest?.ceremony} />
+        <CinematicBreak locale={locale} />
         <Gallery locale={locale} />
         <Rsvp locale={locale} />
         {hasRsvped && (
@@ -97,6 +98,7 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
         <Footer locale={locale} />
       </ReactLenis>
       <MusicPlayer locale={locale} />
+      <ColorTemperature />
     </>
   );
 }

@@ -4,12 +4,15 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { WEDDING, getDisplayDate, getExtraLinks } from "@/lib/constants";
 import { Locale } from "@/lib/types";
+import MagneticButton from "./MagneticButton";
+import GoldenParticles from "./GoldenParticles";
 
 export default function Footer({ locale }: { locale: Locale }) {
   const extraLinks = getExtraLinks(locale);
 
   return (
-    <footer className="bg-charcoal py-16 text-center md:py-20">
+    <footer className="relative bg-charcoal py-16 text-center md:py-20">
+      <GoldenParticles count={10} color="255, 255, 255" />
       <motion.p
         initial={{ opacity: 0, scale: 0.9 }}
         whileInView={{ opacity: 1, scale: 1 }}
@@ -48,13 +51,14 @@ export default function Footer({ locale }: { locale: Locale }) {
         className="mt-5 flex items-center justify-center gap-6"
       >
         {extraLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="text-xs uppercase tracking-[0.15em] text-white/40 transition-colors hover:text-gold"
-          >
-            {link.label}
-          </Link>
+          <MagneticButton key={link.href} strength={0.25}>
+            <Link
+              href={link.href}
+              className="text-xs uppercase tracking-[0.15em] text-white/40 transition-colors hover:text-gold"
+            >
+              {link.label}
+            </Link>
+          </MagneticButton>
         ))}
       </motion.div>
       <motion.p

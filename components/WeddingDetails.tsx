@@ -5,6 +5,7 @@ import { WEDDING, getDisplayDate } from "@/lib/constants";
 import { getTranslations } from "@/lib/i18n";
 import { Locale } from "@/lib/types";
 import SectionHeading from "./SectionHeading";
+import MagneticButton from "./MagneticButton";
 
 function RingsIcon() {
   return (
@@ -108,29 +109,65 @@ export default function WeddingDetails({ locale, showCeremony }: { locale: Local
         >
           {showCeremony && (
             <motion.div variants={cardVariantLeft} className="flex-1">
+              <MagneticButton strength={0.15}>
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.3 }}
+                  className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
+                >
+                  <CornerAccents />
+                  <RingsIcon />
+                  <h3 className="font-serif text-2xl font-light text-charcoal">
+                    {t.ceremony}
+                  </h3>
+                  <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
+                    {displayDate} &middot; {WEDDING.ceremonyTime}
+                  </p>
+                  {WEDDING.ceremonyVenue && (
+                    <p className="mt-4 font-serif text-lg text-charcoal">
+                      {WEDDING.ceremonyVenue}
+                    </p>
+                  )}
+                  <p className={`${WEDDING.ceremonyVenue ? "mt-1" : "mt-4"} text-sm text-stone`}>
+                    {WEDDING.ceremonyAddress}
+                  </p>
+                  <a
+                    href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.ceremonyAddress)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative mt-4 inline-block text-sm text-gold"
+                  >
+                    {t.viewMap}
+                    <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-100 bg-gold/40 transition-all duration-300 group-hover:scale-x-100 group-hover:bg-gold" />
+                  </a>
+                </motion.div>
+              </MagneticButton>
+            </motion.div>
+          )}
+
+          <motion.div variants={showCeremony ? cardVariantRight : cardVariantLeft} className={showCeremony ? "flex-1" : ""}>
+            <MagneticButton strength={0.15}>
               <motion.div
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.3 }}
                 className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
               >
                 <CornerAccents />
-                <RingsIcon />
+                <ChampagneIcon />
                 <h3 className="font-serif text-2xl font-light text-charcoal">
-                  {t.ceremony}
+                  {t.reception}
                 </h3>
                 <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
-                  {displayDate} &middot; {WEDDING.ceremonyTime}
+                  {displayDate} &middot; {WEDDING.receptionTime}
                 </p>
-                {WEDDING.ceremonyVenue && (
-                  <p className="mt-4 font-serif text-lg text-charcoal">
-                    {WEDDING.ceremonyVenue}
-                  </p>
-                )}
-                <p className={`${WEDDING.ceremonyVenue ? "mt-1" : "mt-4"} text-sm text-stone`}>
-                  {WEDDING.ceremonyAddress}
+                <p className="mt-4 font-serif text-lg text-charcoal">
+                  {WEDDING.receptionVenue}
+                </p>
+                <p className="mt-1 text-sm text-stone">
+                  {WEDDING.receptionAddress}
                 </p>
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.ceremonyAddress)}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.receptionAddress)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group relative mt-4 inline-block text-sm text-gold"
@@ -139,39 +176,7 @@ export default function WeddingDetails({ locale, showCeremony }: { locale: Local
                   <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-100 bg-gold/40 transition-all duration-300 group-hover:scale-x-100 group-hover:bg-gold" />
                 </a>
               </motion.div>
-            </motion.div>
-          )}
-
-          <motion.div variants={showCeremony ? cardVariantRight : cardVariantLeft} className={showCeremony ? "flex-1" : ""}>
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.3 }}
-              className="relative h-full overflow-hidden rounded-xl border-t-2 border-gold/40 bg-warm-white p-8 text-center shadow-md transition-shadow duration-300 hover:shadow-lg md:p-12"
-            >
-              <CornerAccents />
-              <ChampagneIcon />
-              <h3 className="font-serif text-2xl font-light text-charcoal">
-                {t.reception}
-              </h3>
-              <p className="mt-3 text-xs font-medium uppercase tracking-[0.2em] text-gold">
-                {displayDate} &middot; {WEDDING.receptionTime}
-              </p>
-              <p className="mt-4 font-serif text-lg text-charcoal">
-                {WEDDING.receptionVenue}
-              </p>
-              <p className="mt-1 text-sm text-stone">
-                {WEDDING.receptionAddress}
-              </p>
-              <a
-                href={`https://maps.google.com/?q=${encodeURIComponent(WEDDING.receptionAddress)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group relative mt-4 inline-block text-sm text-gold"
-              >
-                {t.viewMap}
-                <span className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-100 bg-gold/40 transition-all duration-300 group-hover:scale-x-100 group-hover:bg-gold" />
-              </a>
-            </motion.div>
+            </MagneticButton>
           </motion.div>
         </motion.div>
       </div>

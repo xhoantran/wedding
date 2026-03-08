@@ -8,8 +8,10 @@ import { getTranslations } from "@/lib/i18n";
 import { Locale, GalleryImage } from "@/lib/types";
 import { useGuest } from "@/lib/guest-context";
 import SectionHeading from "./SectionHeading";
+import TiltCard from "./TiltCard";
 import Lightbox from "./Lightbox";
 import GalleryModal from "./GalleryModal";
+import MagneticButton from "./MagneticButton";
 
 function ImagePlaceholder() {
   return (
@@ -81,10 +83,8 @@ export default function Gallery({ locale }: { locale: Locale }) {
               {GALLERY_IMAGES.map((image, index) => {
                 const isGuestPhoto = guestPhotos.has(image.src);
                 return (
-                  <motion.div
+                  <TiltCard
                     key={image.src}
-                    whileHover={{ scale: 1.03, rotateY: 2, rotateX: -2 }}
-                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
                     className={`relative shrink-0 cursor-pointer overflow-hidden rounded-xl shadow-lg ${
                       isGuestPhoto ? "ring-2 ring-gold ring-offset-2 ring-offset-cream" : ""
                     } ${
@@ -94,7 +94,6 @@ export default function Gallery({ locale }: { locale: Locale }) {
                           ? "h-[55vh] w-[60vw] md:w-[20vw]"
                           : "h-[42vh] w-[70vw] md:w-[24vw]"
                     }`}
-                    style={{ perspective: 800 }}
                     onClick={() => setLightboxIndex(index)}
                   >
                     <ImagePlaceholder />
@@ -113,28 +112,30 @@ export default function Gallery({ locale }: { locale: Locale }) {
                         &#x2605;
                       </span>
                     )}
-                  </motion.div>
+                  </TiltCard>
                 );
               })}
 
               {/* View All button */}
               <div className="flex h-[45vh] w-[50vw] shrink-0 items-center justify-center md:w-[16vw]">
-                <button
-                  onClick={() => setShowModal(true)}
-                  className="group flex flex-col items-center gap-3 text-stone transition-colors hover:text-charcoal"
-                >
-                  <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 text-gold transition-all group-hover:scale-110 group-hover:border-gold group-hover:bg-gold/10">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <rect x="1" y="1" width="7" height="7" rx="1" />
-                      <rect x="12" y="1" width="7" height="7" rx="1" />
-                      <rect x="1" y="12" width="7" height="7" rx="1" />
-                      <rect x="12" y="12" width="7" height="7" rx="1" />
-                    </svg>
-                  </span>
-                  <span className="text-xs font-medium tracking-widest uppercase">
-                    {t.viewAll}
-                  </span>
-                </button>
+                <MagneticButton strength={0.3}>
+                  <button
+                    onClick={() => setShowModal(true)}
+                    className="group flex flex-col items-center gap-3 text-stone transition-colors hover:text-charcoal"
+                  >
+                    <span className="flex h-14 w-14 items-center justify-center rounded-full border border-gold/40 text-gold transition-all group-hover:scale-110 group-hover:border-gold group-hover:bg-gold/10">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="1" y="1" width="7" height="7" rx="1" />
+                        <rect x="12" y="1" width="7" height="7" rx="1" />
+                        <rect x="1" y="12" width="7" height="7" rx="1" />
+                        <rect x="12" y="12" width="7" height="7" rx="1" />
+                      </svg>
+                    </span>
+                    <span className="text-xs font-medium tracking-widest uppercase">
+                      {t.viewAll}
+                    </span>
+                  </button>
+                </MagneticButton>
               </div>
             </motion.div>
           </div>
