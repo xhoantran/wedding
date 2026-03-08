@@ -228,7 +228,7 @@ function AddGuestForm({ onCreated }: { onCreated: () => void }) {
       if ("error" in result) {
         setError(result.error);
       } else {
-        const url = `${window.location.origin}/vi/invite/${result.id}`;
+        const url = `${window.location.origin}/invite/${result.id}`;
         setCreatedUrl(url);
         setNames("");
         setVnTitle("");
@@ -448,7 +448,7 @@ function GuestTable({
   };
 
   const copyInviteUrl = (id: string) => {
-    const url = `${window.location.origin}/vi/invite/${id}`;
+    const url = `${window.location.origin}/invite/${id}`;
     navigator.clipboard.writeText(url);
   };
 
