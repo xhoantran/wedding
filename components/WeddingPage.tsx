@@ -60,6 +60,14 @@ export default function WeddingPage({ locale }: { locale: Locale }) {
       html.style.overflow = "";
       body.style.overflow = "";
       lenisRef.current?.lenis?.start();
+
+      // Auto-scroll after 5s to hint there's more content
+      const timer = setTimeout(() => {
+        lenisRef.current?.lenis?.scrollTo(window.innerHeight * 0.35, {
+          duration: 1.8,
+        });
+      }, 5000);
+      return () => clearTimeout(timer);
     }
   }, [loaded]);
 
