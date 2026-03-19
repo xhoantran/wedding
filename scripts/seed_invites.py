@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Seed Supabase invites table and rewrite guests.json with UUID keys.
+"""Seed Supabase invites table from guests.json.
 
-After running generate_guests.py (which produces slug-keyed guests.json),
-run this script to:
-1. Create/fetch UUIDs in Supabase invites table for each guest
-2. Rewrite guests.json with UUID keys (replacing slug keys)
+After running generate_guests.py, run this script to upsert invite rows
+so the 'is_seen' tracking works when guests visit their invite links.
 """
 
 import json
@@ -32,28 +30,21 @@ def main():
 
     print(f"Found {len(guests)} guests in {GUESTS_FILE.name}\n")
 
-    # Build UUID-keyed guests
-    uuid_guests: dict = {}
+    for guest_id in sorted(guests.keys()):
+        names = " & ".join(guests[guest_id].get("names", []))
 
-    for guest_code in sorted(guests.keys()):
-        # Check if already exists in Supabase
-        existing = sb.table("invites").select("id").eq("guest_code", guest_code).execute()
+        # Seed invite row
+        sb.table("invites").upsert({"id": guest_id}, on_conflict="id").execute()
 
-        if existing.data:
-            uuid = existing.data[0]["id"]
-            print(f"  exists  {uuid}  {guest_code}")
-        else:
-            result = sb.table("invites").insert({"guest_code": guest_code}).execute()
-            uuid = result.data[0]["id"]
-            print(f"  created {uuid}  {guest_code}")
+        # Seed empty RSVP row
+        sb.table("rsvps").upsert(
+            {"invite_id": guest_id, "name": "", "email": "", "attendance": "pending"},
+            on_conflict="invite_id",
+        ).execute()
 
-        uuid_guests[uuid] = guests[guest_code]
+        print(f"  upserted  {guest_id}  ({names})")
 
-    # Rewrite guests.json with UUID keys
-    with open(GUESTS_FILE, "w") as f:
-        json.dump(uuid_guests, f, indent=2, ensure_ascii=False)
-
-    print(f"\nDone! Rewrote {GUESTS_FILE.name} with {len(uuid_guests)} UUID-keyed entries.")
+    print(f"\nDone! Upserted {len(guests)} invite + rsvp rows.")
 
 
 if __name__ == "__main__":

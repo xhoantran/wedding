@@ -32,9 +32,9 @@ export async function submitRsvp(
     if (inviteId) {
       // Supabase upsert for invited guests
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const { error } = await supabase.from("rsvps").upsert(
-        {
-          invite_id: inviteId,
+      const { error } = await supabase
+        .from("rsvps")
+        .update({
           name,
           email,
           attendance,
@@ -42,9 +42,8 @@ export async function submitRsvp(
           meal: attendance === "accept" ? meal : "",
           message,
           updated_at: new Date().toISOString(),
-        },
-        { onConflict: "invite_id" }
-      );
+        })
+        .eq("invite_id", inviteId);
 
       if (error) {
         console.error("Supabase RSVP error:", error);
